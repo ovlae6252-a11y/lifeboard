@@ -1,76 +1,75 @@
 # CLAUDE.md
 
-## 언어 및 코딩 규칙
-- 기본 응답/주석/커밋/문서: 한국어
-- 변수명/함수명: 영어 (코드 표준 준수)
-- 들여쓰기: 2칸
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## 실행 명령어
+## 프로젝트 개요
+
+라이프보드(Lifeboard) - Next.js + Supabase 기반 웹 애플리케이션. Supabase Starter Kit에서 시작하여 개발 중.
+
+## 개발 명령어
+
 ```bash
-npm install           # 의존성 설치
-npm run dev          # 개발 서버 (localhost:3000)
-npm run build        # 프로덕션 빌드
-npm run start        # 프로덕션 서버
-npm run lint         # ESLint
+npm run dev      # 개발 서버 (localhost:3000)
+npm run build    # 프로덕션 빌드
+npm run lint     # ESLint 실행
 ```
 
 ## 기술 스택
-- **Next.js 16.1.6** (App Router) + **React 19.2.3** + **TypeScript 5**
-- **Tailwind CSS 4** + **Shadcn/ui** (Radix UI 개별 패키지 기반)
-- **next-themes** (다크모드) + **react-wrap-balancer** (텍스트 균형)
 
-## 아키텍처 원칙
+- **Next.js** (App Router) + React 19 + TypeScript (strict)
+- **Supabase** (@supabase/ssr) - 인증 및 백엔드
+- **Tailwind CSS 3** + CSS 변수 기반 테마 (다크모드: `next-themes`, class 방식)
+- **shadcn/ui** (new-york 스타일, Radix UI, lucide-react 아이콘)
 
-### 중앙 집중식 설정
-`lib/config.ts`에서 사이트명, 메뉴, 기능 목록, 텍스트를 한곳에서 관리. 컴포넌트에서 `config`를 import하여 사용.
+## 아키텍처
 
-### ThemeProvider 구조
-- `layout.tsx`에서 `<ThemeProvider attribute="class" defaultTheme="system" enableSystem>` 설정
-- `<html>` 태그에 `suppressHydrationWarning` 적용 (ThemeProvider가 아닌 html 태그)
-- `components/theme-provider.tsx`는 `next-themes`의 단순 래퍼
+### Supabase 클라이언트 패턴
 
-### Hydration 안전 패턴
-클라이언트 컴포넌트에서 테마 접근 시 `useEffect + mounted` 패턴 사용 (참조: `theme-toggle.tsx`).
-서버/클라이언트 불일치를 방지하기 위해 마운트 전까지 placeholder 렌더링.
+3가지 Supabase 클라이언트 팩토리가 `lib/supabase/`에 있으며, 용도에 따라 구분 사용:
 
-### Server Component 기본
-모든 컴포넌트는 기본 Server Component. 상태(`useState`), 이벤트(`onClick`), 훅(`useEffect`), 브라우저 API가 필요할 때만 `"use client"` 선언.
+- `server.ts` - Server Component/Server Action용. **요청마다 새로 생성** (전역 변수 금지)
+- `client.ts` - Client Component용 (브라우저)
+- `proxy.ts` - Middleware용. 세션 쿠키 갱신 처리
 
-## 의존성 관리 규칙
+인증 상태 확인 시 `supabase.auth.getClaims()` 사용 (`getUser()` 대비 빠름).
 
-### Shadcn/ui 컴포넌트 추가
-```bash
-npx shadcn@latest add [component-name]
+### 라우팅 구조
+
+- `/` - 공개 홈 페이지
+- `/auth/*` - 인증 플로우 (login, sign-up, forgot-password, update-password, confirm, error, sign-up-success)
+- `/auth/confirm` - 이메일 OTP 검증 Route Handler (GET)
+- `/protected/*` - 인증 필요 페이지 (별도 layout)
+
+### Middleware (`proxy.ts`)
+
+모든 요청에서 Supabase 세션을 갱신하고, 미인증 사용자를 `/auth/login`으로 리다이렉트. `/`, `/login`, `/auth/*`는 예외.
+
+### 컴포넌트 구조
+
+- `components/ui/` - shadcn/ui 기본 컴포넌트 (`npx shadcn@latest add <name>`으로 추가)
+- `components/` 루트 - 인증 관련 컴포넌트 (auth-button, login-form, sign-up-form 등)
+
+## 코딩 규칙
+
+- 경로 별칭: `@/*` (프로젝트 루트 기준)
+- 들여쓰기: 2칸
+- 주석/커밋/문서: 한국어
+- 변수명/함수명: 영어
+- CSS 색상: `globals.css`의 HSL CSS 변수 사용 (하드코딩 금지)
+
+## 환경 변수
+
+`.env.local`에 설정 (gitignore됨):
+
 ```
-- 수동 복사/붙여넣기 금지 — CLI가 dependencies와 import를 자동 처리
-- 개별 `@radix-ui/react-*` 패키지 직접 설치 금지 — CLI 사용
+NEXT_PUBLIC_SUPABASE_URL=<supabase-project-url>
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<supabase-publishable-key>
+SLACK_WEBHOOK_URL=<slack-webhook-url>  # 훅 알림용
+```
 
-### Radix UI 패키지
-- 현재 표준: 개별 패키지 `@radix-ui/react-*` 사용 (import 방식: `import * as DialogPrimitive from "@radix-ui/react-dialog"`)
-- 통합 패키지 `radix-ui` 사용 금지 (불안정)
-- `npx shadcn@latest migrate radix` 실행 금지 (런타임 오류 위험)
+## MCP 서버
 
-### 패키지 설치 전 체크리스트
-1. **Context7 MCP**로 최신 문서/호환성 확인
-2. Next.js 16 + React 19 호환성 체크
-3. Breaking changes 및 마이그레이션 가이드 확인
-4. package.json에 중복 패키지 없는지 확인
-
-### 핵심 원칙
-코드에서 import하는 모든 패키지는 `package.json`의 `dependencies`에 명시적으로 설치되어야 함. 중첩 의존성에만 의존 금지.
-
-## 트러블슈팅
-
-| 증상 | 원인 | 해결책 |
-|------|------|--------|
-| 페이지 무한 로딩 (HTTP 응답 없음) | import와 dependencies 불일치 | `npm ls [package]`로 확인 후 명시적 설치 |
-| 컴포넌트 미렌더링 | import 경로 오류 | `components/ui/` 파일 및 import 경로 검증 |
-| "Cannot find module" | 패키지 미설치 | `npm install [package]`로 설치 |
-| 빌드 성공 → 런타임 실패 | 코드/의존성 불일치 | HTTP 응답 확인 + `npm ls` 실행 |
-| 빌드 실패 | TypeScript 타입 오류 | `npm run build`로 전체 컴파일 확인 |
-
-## 확장 가이드
-- **페이지 추가**: `app/[path]/page.tsx` 파일 생성 → 자동 라우트
-- **콘텐츠 변경**: `lib/config.ts` 수정 (사이트명, 메뉴, 기능 목록 등)
-- **UI 컴포넌트 추가**: `npx shadcn@latest add [name]` → `components/ui/`에 저장
-- **클래스 병합**: `cn("base", condition && "conditional")` 유틸리티 사용
+`.mcp.json`에 설정됨:
+- `sequential-thinking` - 단계적 사고 지원
+- `shadcn` - shadcn/ui 컴포넌트 관리
+- `shrimp-task-manager` - 태스크 관리
