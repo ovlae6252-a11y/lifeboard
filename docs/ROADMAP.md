@@ -53,23 +53,23 @@
 
 #### 마일스톤 0.1: Starter Kit 정리 및 브랜딩 변경
 
-- [ ] 태스크 0.1.1: 루트 레이아웃 브랜딩 변경
+- [x] 태스크 0.1.1: 루트 레이아웃 브랜딩 변경
   - 상세: `app/layout.tsx`에서 `title`을 "Lifeboard"로, `description`을 프로젝트 설명으로 변경. `lang="en"`을 `lang="ko"`로 변경.
   - 관련 파일: `app/layout.tsx`
 
-- [ ] 태스크 0.1.2: 홈 페이지 (`/`) 정리
+- [x] 태스크 0.1.2: 홈 페이지 (`/`) 정리
   - 상세: `app/page.tsx`에서 `Hero`, `ConnectSupabaseSteps`, `SignUpUserSteps` 등 Starter Kit 튜토리얼 콘텐츠를 제거. Lifeboard 소개 텍스트와 로그인 유도 UI로 교체.
   - 관련 파일: `app/page.tsx`
 
-- [ ] 태스크 0.1.3: 불필요한 Starter Kit 컴포넌트 삭제
+- [x] 태스크 0.1.3: 불필요한 Starter Kit 컴포넌트 삭제
   - 상세: `components/deploy-button.tsx`, `components/hero.tsx`, `components/next-logo.tsx`, `components/supabase-logo.tsx`, `components/env-var-warning.tsx`, `components/tutorial/` 디렉토리 전체 삭제.
   - 관련 파일: `components/deploy-button.tsx`, `components/hero.tsx`, `components/next-logo.tsx`, `components/supabase-logo.tsx`, `components/env-var-warning.tsx`, `components/tutorial/*`
 
-- [ ] 태스크 0.1.4: protected 레이아웃 네비게이션 개편
+- [x] 태스크 0.1.4: protected 레이아웃 네비게이션 개편
   - 상세: `app/protected/layout.tsx`에서 "Next.js Supabase Starter" 텍스트를 "Lifeboard"로 변경. `DeployButton` 제거. "대시보드", "뉴스" 네비게이션 링크 추가. 모바일 반응형 네비게이션 적용.
   - 관련 파일: `app/protected/layout.tsx`
 
-- [ ] 태스크 0.1.5: Playwright MCP 테스트 - 브랜딩 변경 및 네비게이션
+- [x] 태스크 0.1.5: Playwright MCP 테스트 - 브랜딩 변경 및 네비게이션
   - 사전 조건: 태스크 0.1.1 ~ 0.1.4 완료
   - 검증 항목:
     1. `browser_navigate`로 `/` 접근 -> "Lifeboard" 텍스트 존재 확인
@@ -80,23 +80,23 @@
 
 #### 마일스톤 0.2: 공통 레이아웃 컴포넌트 구성 (F012)
 
-- [ ] 태스크 0.2.1: 공통 헤더 컴포넌트 분리
+- [x] 태스크 0.2.1: 공통 헤더 컴포넌트 분리
   - 상세: `app/protected/layout.tsx`의 nav 영역을 `components/layout/header.tsx`로 분리. Lifeboard 로고, 네비게이션 링크(대시보드, 뉴스), AuthButton, ThemeSwitcher 포함.
   - 관련 파일: `components/layout/header.tsx`
 
-- [ ] 태스크 0.2.2: 반응형 모바일 네비게이션 구현
+- [x] 태스크 0.2.2: 반응형 모바일 네비게이션 구현
   - 상세: 768px 이하에서 햄버거 메뉴로 전환되는 모바일 네비게이션 구현. shadcn/ui `Sheet` 컴포넌트 활용.
   - 관련 파일: `components/layout/mobile-nav.tsx`
 
-- [ ] 태스크 0.2.3: 공통 푸터 컴포넌트 분리
+- [x] 태스크 0.2.3: 공통 푸터 컴포넌트 분리
   - 상세: `app/protected/layout.tsx`의 footer 영역을 `components/layout/footer.tsx`로 분리. "Powered by Supabase" 문구를 Lifeboard에 맞게 변경.
   - 관련 파일: `components/layout/footer.tsx`
 
-- [ ] 태스크 0.2.4: protected 레이아웃에 공통 컴포넌트 적용
+- [x] 태스크 0.2.4: protected 레이아웃에 공통 컴포넌트 적용
   - 상세: `app/protected/layout.tsx`에서 분리한 `Header`, `Footer` 컴포넌트를 import하여 적용. 홈 페이지(`app/page.tsx`)에도 동일 헤더 적용.
   - 관련 파일: `app/protected/layout.tsx`, `app/page.tsx`
 
-- [ ] 태스크 0.2.5: Playwright MCP 테스트 - 반응형 레이아웃
+- [x] 태스크 0.2.5: Playwright MCP 테스트 - 반응형 레이아웃
   - 사전 조건: 태스크 0.2.1 ~ 0.2.4 완료
   - 검증 항목:
     1. `browser_navigate`로 `/protected` 접근 -> 헤더, 푸터 정상 렌더링 확인

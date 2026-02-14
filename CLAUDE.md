@@ -47,7 +47,13 @@ npm run lint     # ESLint 실행
 ### 컴포넌트 구조
 
 - `components/ui/` - shadcn/ui 기본 컴포넌트 (`npx shadcn@latest add <name>`으로 추가)
+- `components/layout/` - 공통 레이아웃 (header, mobile-nav, footer)
 - `components/` 루트 - 인증 관련 컴포넌트 (auth-button, login-form, sign-up-form 등)
+
+### Next.js 16 주의사항
+
+- `new Date()` 등 동적 값을 사용하는 컴포넌트는 Client Component로 만들거나 `<Suspense>` 경계 내에 배치해야 함
+- 비캐시 데이터 접근 (cookies, headers 등)은 반드시 `<Suspense>` 경계 안에서 수행
 
 ## 코딩 규칙
 
