@@ -40,9 +40,7 @@ export function LoginForm({
       if (error) throw error;
       router.push("/protected");
     } catch (error: unknown) {
-      setError(
-        error instanceof Error ? error.message : "오류가 발생했습니다",
-      );
+      setError(error instanceof Error ? error.message : "오류가 발생했습니다");
     } finally {
       setIsLoading(false);
     }
@@ -89,9 +87,7 @@ export function LoginForm({
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-              {error && (
-                <p className="text-sm text-destructive">{error}</p>
-              )}
+              {error && <p className="text-sm text-destructive">{error}</p>}
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "로그인 중..." : "로그인"}
               </Button>

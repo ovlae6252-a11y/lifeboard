@@ -1,0 +1,11 @@
+.next/
+out/
+build/
+node_modules/
+scripts/
+supabase/migrations/
+lib/supabase/database.types.ts
+package-lock.json
+.vercel/
+.playwright-mcp/
+shrimp_data/

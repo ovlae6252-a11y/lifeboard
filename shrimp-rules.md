@@ -11,22 +11,22 @@
 
 ## 디렉토리 구조 및 역할
 
-| 디렉토리/파일 | 역할 | 수정 시 주의사항 |
-|---|---|---|
-| `app/layout.tsx` | 루트 레이아웃 (ThemeProvider, 폰트, 메타데이터) | 전역 영향, 신중히 수정 |
-| `app/page.tsx` | 공개 홈 페이지 | 미인증 사용자 접근 가능 |
-| `app/globals.css` | Tailwind + HSL CSS 변수 (라이트/다크) | `:root`와 `.dark` 항상 동시 수정 |
-| `app/auth/*` | 인증 플로우 페이지 | `proxy.ts` 화이트리스트에 포함됨 |
-| `app/protected/*` | 인증 필요 페이지 | 새 페이지는 반드시 이 하위에 생성 |
-| `app/protected/layout.tsx` | 인증 영역 레이아웃 (네비게이션, 푸터) | 새 메뉴 추가 시 이 파일 수정 |
-| `components/ui/` | shadcn/ui 기본 컴포넌트 | **직접 수정 금지**, CLI로만 관리 |
-| `components/` | 프로젝트 커스텀 컴포넌트 | 새 컴포넌트는 여기에 생성 |
-| `lib/supabase/server.ts` | Server Component/Action용 클라이언트 | 요청마다 새 인스턴스 생성 필수 |
-| `lib/supabase/client.ts` | Client Component용 브라우저 클라이언트 | `NEXT_PUBLIC_` 환경 변수 사용 |
-| `lib/supabase/proxy.ts` | Middleware용 세션 갱신 클라이언트 | `supabaseResponse` 객체 변조 금지 |
-| `lib/utils.ts` | 유틸리티 (`cn()`, `hasEnvVars`) | 공통 헬퍼 추가 위치 |
-| `proxy.ts` | Next.js Middleware (세션 + 리다이렉트) | 공개 경로 추가 시 화이트리스트 수정 |
-| `CLAUDE.md` | AI Agent 개발 가이드라인 | 아키텍처 변경 시 동기화 |
+| 디렉토리/파일              | 역할                                            | 수정 시 주의사항                    |
+| -------------------------- | ----------------------------------------------- | ----------------------------------- |
+| `app/layout.tsx`           | 루트 레이아웃 (ThemeProvider, 폰트, 메타데이터) | 전역 영향, 신중히 수정              |
+| `app/page.tsx`             | 공개 홈 페이지                                  | 미인증 사용자 접근 가능             |
+| `app/globals.css`          | Tailwind + HSL CSS 변수 (라이트/다크)           | `:root`와 `.dark` 항상 동시 수정    |
+| `app/auth/*`               | 인증 플로우 페이지                              | `proxy.ts` 화이트리스트에 포함됨    |
+| `app/protected/*`          | 인증 필요 페이지                                | 새 페이지는 반드시 이 하위에 생성   |
+| `app/protected/layout.tsx` | 인증 영역 레이아웃 (네비게이션, 푸터)           | 새 메뉴 추가 시 이 파일 수정        |
+| `components/ui/`           | shadcn/ui 기본 컴포넌트                         | **직접 수정 금지**, CLI로만 관리    |
+| `components/`              | 프로젝트 커스텀 컴포넌트                        | 새 컴포넌트는 여기에 생성           |
+| `lib/supabase/server.ts`   | Server Component/Action용 클라이언트            | 요청마다 새 인스턴스 생성 필수      |
+| `lib/supabase/client.ts`   | Client Component용 브라우저 클라이언트          | `NEXT_PUBLIC_` 환경 변수 사용       |
+| `lib/supabase/proxy.ts`    | Middleware용 세션 갱신 클라이언트               | `supabaseResponse` 객체 변조 금지   |
+| `lib/utils.ts`             | 유틸리티 (`cn()`, `hasEnvVars`)                 | 공통 헬퍼 추가 위치                 |
+| `proxy.ts`                 | Next.js Middleware (세션 + 리다이렉트)          | 공개 경로 추가 시 화이트리스트 수정 |
+| `CLAUDE.md`                | AI Agent 개발 가이드라인                        | 아키텍처 변경 시 동기화             |
 
 ### Starter Kit 잔여 컴포넌트 (제거 대상)
 
@@ -42,12 +42,12 @@
 
 ### 언어 규칙
 
-| 대상 | 언어 |
-|---|---|
-| 변수명, 함수명, 파일명 | 영어 |
-| 주석 | 한국어 |
-| 커밋 메시지 | 한국어 |
-| 문서 | 한국어 |
+| 대상                   | 언어   |
+| ---------------------- | ------ |
+| 변수명, 함수명, 파일명 | 영어   |
+| 주석                   | 한국어 |
+| 커밋 메시지            | 한국어 |
+| 문서                   | 한국어 |
 
 ### 포맷 규칙
 
@@ -71,13 +71,13 @@ import { createClient } from "../../lib/supabase/server";
 
 ### 클라이언트 선택 기준
 
-| 컨텍스트 | 사용할 클라이언트 | import 경로 |
-|---|---|---|
-| Server Component | `createClient()` | `@/lib/supabase/server` |
-| Server Action | `createClient()` | `@/lib/supabase/server` |
-| Route Handler | `createClient()` | `@/lib/supabase/server` |
-| Client Component | `createClient()` | `@/lib/supabase/client` |
-| Middleware | `updateSession()` | `@/lib/supabase/proxy` |
+| 컨텍스트         | 사용할 클라이언트 | import 경로             |
+| ---------------- | ----------------- | ----------------------- |
+| Server Component | `createClient()`  | `@/lib/supabase/server` |
+| Server Action    | `createClient()`  | `@/lib/supabase/server` |
+| Route Handler    | `createClient()`  | `@/lib/supabase/server` |
+| Client Component | `createClient()`  | `@/lib/supabase/client` |
+| Middleware       | `updateSession()` | `@/lib/supabase/proxy`  |
 
 ### 서버 클라이언트 규칙
 
@@ -99,10 +99,14 @@ export default async function Page() {
 
 ```typescript
 // DO: getClaims() 사용 (빠름, JWT 토큰만 검증)
-const { data: { claims } } = await supabase.auth.getClaims();
+const {
+  data: { claims },
+} = await supabase.auth.getClaims();
 
 // DON'T: getUser() 사용 (매번 Supabase API 호출, 느림)
-const { data: { user } } = await supabase.auth.getUser();
+const {
+  data: { user },
+} = await supabase.auth.getUser();
 ```
 
 ---
@@ -134,10 +138,10 @@ npx shadcn@latest add card
 
 ### 새 컴포넌트 생성 위치
 
-| 유형 | 위치 |
-|---|---|
-| shadcn/ui 기본 컴포넌트 | `components/ui/` (CLI로만 추가) |
-| 프로젝트 공통 컴포넌트 | `components/` |
+| 유형                      | 위치                                |
+| ------------------------- | ----------------------------------- |
+| shadcn/ui 기본 컴포넌트   | `components/ui/` (CLI로만 추가)     |
+| 프로젝트 공통 컴포넌트    | `components/`                       |
 | 특정 페이지 전용 컴포넌트 | 해당 라우트 폴더 또는 `components/` |
 
 ---
@@ -195,11 +199,13 @@ npx shadcn@latest add card
 ### 새 페이지 추가 워크플로우
 
 **인증 필요 페이지:**
+
 1. `app/protected/<route>/page.tsx` 생성
 2. `app/protected/layout.tsx`에 네비게이션 링크 추가
 3. 미들웨어가 자동으로 인증 체크 처리
 
 **공개 페이지:**
+
 1. `app/<route>/page.tsx` 생성
 2. `proxy.ts`의 미들웨어 화이트리스트에 경로 추가 필수
 3. 화이트리스트 미추가 시 미인증 사용자가 `/auth/login`으로 리다이렉트됨
@@ -216,15 +222,15 @@ npx shadcn@latest add card
 
 ### 동시 수정이 필요한 파일 조합
 
-| 작업 | 수정 필요 파일 |
-|---|---|
-| 새 인증 필요 페이지 추가 | `app/protected/<route>/page.tsx` + `app/protected/layout.tsx` (네비 링크) |
-| 새 공개 페이지 추가 | `app/<route>/page.tsx` + `proxy.ts` (화이트리스트) |
-| CSS 변수 추가 | `app/globals.css` (`:root` + `.dark`) + (선택) `tailwind.config.ts` |
-| 환경 변수 추가 | `.env.local` + `CLAUDE.md` (문서화) |
-| Supabase 테이블 추가 | 마이그레이션 SQL + TypeScript 타입 정의 + RLS 정책 |
-| shadcn/ui 컴포넌트 추가 | CLI 실행 → `components/ui/` 자동 생성 (수동 작업 없음) |
-| Starter Kit 컴포넌트 제거 | 컴포넌트 파일 삭제 + `app/page.tsx` import 제거 |
+| 작업                      | 수정 필요 파일                                                            |
+| ------------------------- | ------------------------------------------------------------------------- |
+| 새 인증 필요 페이지 추가  | `app/protected/<route>/page.tsx` + `app/protected/layout.tsx` (네비 링크) |
+| 새 공개 페이지 추가       | `app/<route>/page.tsx` + `proxy.ts` (화이트리스트)                        |
+| CSS 변수 추가             | `app/globals.css` (`:root` + `.dark`) + (선택) `tailwind.config.ts`       |
+| 환경 변수 추가            | `.env.local` + `CLAUDE.md` (문서화)                                       |
+| Supabase 테이블 추가      | 마이그레이션 SQL + TypeScript 타입 정의 + RLS 정책                        |
+| shadcn/ui 컴포넌트 추가   | CLI 실행 → `components/ui/` 자동 생성 (수동 작업 없음)                    |
+| Starter Kit 컴포넌트 제거 | 컴포넌트 파일 삭제 + `app/page.tsx` import 제거                           |
 
 ---
 
@@ -286,17 +292,17 @@ npx shadcn@latest add card
 
 ## 금지 사항
 
-| 번호 | 금지 항목 | 이유 |
-|---|---|---|
-| 1 | `components/ui/` 파일 직접 수정 | shadcn CLI가 관리, 업데이트 시 덮어씀 |
-| 2 | Supabase 서버 클라이언트 전역 변수 저장 | Vercel Fluid Compute에서 요청 간 상태 공유 위험 |
-| 3 | CSS 색상값 하드코딩 | 다크 모드 미지원, 테마 일관성 파괴 |
-| 4 | `getUser()` 사용 | 매번 API 호출로 성능 저하, `getClaims()` 사용 |
-| 5 | 미들웨어의 `supabaseResponse` 객체 변조 | 세션 쿠키 갱신 로직 파손 |
-| 6 | `NEXT_PUBLIC_` 없이 클라이언트에 환경 변수 노출 | 보안 위반, 빌드 시 포함 안됨 |
-| 7 | Server Component에서 React hooks 사용 | 런타임 에러 발생 |
-| 8 | 인증 필요 페이지를 `app/` 루트에 직접 생성 | `protected/` 레이아웃의 인증 체크 및 네비게이션 누락 |
-| 9 | RLS 정책 없이 Supabase 테이블 생성 | 데이터 무단 접근 위험 |
-| 10 | Starter Kit 컴포넌트를 새 기능에 재사용 | 제거 예정 코드, 의존성 생성 금지 |
-| 11 | 상대 경로 import (`../../`) | `@/*` 별칭 사용 필수 |
-| 12 | `app/globals.css`에서 `:root`만 수정하고 `.dark` 미수정 | 다크 모드 스타일 깨짐 |
+| 번호 | 금지 항목                                               | 이유                                                 |
+| ---- | ------------------------------------------------------- | ---------------------------------------------------- |
+| 1    | `components/ui/` 파일 직접 수정                         | shadcn CLI가 관리, 업데이트 시 덮어씀                |
+| 2    | Supabase 서버 클라이언트 전역 변수 저장                 | Vercel Fluid Compute에서 요청 간 상태 공유 위험      |
+| 3    | CSS 색상값 하드코딩                                     | 다크 모드 미지원, 테마 일관성 파괴                   |
+| 4    | `getUser()` 사용                                        | 매번 API 호출로 성능 저하, `getClaims()` 사용        |
+| 5    | 미들웨어의 `supabaseResponse` 객체 변조                 | 세션 쿠키 갱신 로직 파손                             |
+| 6    | `NEXT_PUBLIC_` 없이 클라이언트에 환경 변수 노출         | 보안 위반, 빌드 시 포함 안됨                         |
+| 7    | Server Component에서 React hooks 사용                   | 런타임 에러 발생                                     |
+| 8    | 인증 필요 페이지를 `app/` 루트에 직접 생성              | `protected/` 레이아웃의 인증 체크 및 네비게이션 누락 |
+| 9    | RLS 정책 없이 Supabase 테이블 생성                      | 데이터 무단 접근 위험                                |
+| 10   | Starter Kit 컴포넌트를 새 기능에 재사용                 | 제거 예정 코드, 의존성 생성 금지                     |
+| 11   | 상대 경로 import (`../../`)                             | `@/*` 별칭 사용 필수                                 |
+| 12   | `app/globals.css`에서 `:root`만 수정하고 `.dark` 미수정 | 다크 모드 스타일 깨짐                                |

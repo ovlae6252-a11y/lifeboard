@@ -13,9 +13,7 @@ export function NewsEmptyState({ category }: NewsEmptyStateProps) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-24 text-center">
         <Newspaper className="h-12 w-12 text-muted-foreground/40" />
-        <p className="text-lg font-semibold">
-          아직 수집된 뉴스가 없습니다
-        </p>
+        <p className="text-lg font-semibold">아직 수집된 뉴스가 없습니다</p>
         <div>
           <p className="text-sm text-muted-foreground">
             뉴스는 하루 2회 자동으로 수집됩니다.

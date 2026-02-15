@@ -54,7 +54,10 @@ export async function groupArticles(
       );
 
       if (rpcError) {
-        console.error(`[그룹핑] 유사 그룹 검색 실패 (기사 ${articleId}):`, rpcError.message);
+        console.error(
+          `[그룹핑] 유사 그룹 검색 실패 (기사 ${articleId}):`,
+          rpcError.message,
+        );
         // 에러 시 새 그룹 생성으로 폴백
       }
 
@@ -68,19 +71,32 @@ export async function groupArticles(
           .eq("id", articleId);
 
         if (updateError) {
-          console.error(`[그룹핑] 기사 그룹 할당 실패 (기사 ${articleId}):`, updateError.message);
+          console.error(
+            `[그룹핑] 기사 그룹 할당 실패 (기사 ${articleId}):`,
+            updateError.message,
+          );
           continue;
         }
 
-        const { error: incError } = await supabase.rpc("increment_article_count", {
-          p_group_id: groupId,
-        });
+        const { error: incError } = await supabase.rpc(
+          "increment_article_count",
+          {
+            p_group_id: groupId,
+          },
+        );
 
         if (incError) {
-          console.error(`[그룹핑] article_count 증가 실패 (그룹 ${groupId}):`, incError.message);
+          console.error(
+            `[그룹핑] article_count 증가 실패 (그룹 ${groupId}):`,
+            incError.message,
+          );
         }
 
-        results.push({ article_id: articleId, group_id: groupId, is_new_group: false });
+        results.push({
+          article_id: articleId,
+          group_id: groupId,
+          is_new_group: false,
+        });
       } else {
         // 유사 그룹 없음 또는 RPC 실패 → 새 그룹 생성
         const { data: newGroup, error: groupError } = await supabase
@@ -94,7 +110,10 @@ export async function groupArticles(
           .single();
 
         if (groupError || !newGroup) {
-          console.error(`[그룹핑] 그룹 생성 실패 (기사 ${articleId}):`, groupError?.message);
+          console.error(
+            `[그룹핑] 그룹 생성 실패 (기사 ${articleId}):`,
+            groupError?.message,
+          );
           continue;
         }
 
@@ -104,10 +123,17 @@ export async function groupArticles(
           .eq("id", articleId);
 
         if (assignError) {
-          console.error(`[그룹핑] 기사 그룹 할당 실패 (기사 ${articleId}):`, assignError.message);
+          console.error(
+            `[그룹핑] 기사 그룹 할당 실패 (기사 ${articleId}):`,
+            assignError.message,
+          );
         }
 
-        results.push({ article_id: articleId, group_id: newGroup.id, is_new_group: true });
+        results.push({
+          article_id: articleId,
+          group_id: newGroup.id,
+          is_new_group: true,
+        });
       }
     } catch (error) {
       console.error(`[그룹핑] 예외 발생 (guid: ${article.guid}):`, error);

@@ -37,9 +37,7 @@ export function ForgotPasswordForm({
       if (error) throw error;
       setSuccess(true);
     } catch (error: unknown) {
-      setError(
-        error instanceof Error ? error.message : "오류가 발생했습니다",
-      );
+      setError(error instanceof Error ? error.message : "오류가 발생했습니다");
     } finally {
       setIsLoading(false);
     }
@@ -84,9 +82,7 @@ export function ForgotPasswordForm({
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
-                {error && (
-                  <p className="text-sm text-destructive">{error}</p>
-                )}
+                {error && <p className="text-sm text-destructive">{error}</p>}
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "전송 중..." : "재설정 이메일 보내기"}
                 </Button>

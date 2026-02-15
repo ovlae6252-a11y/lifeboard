@@ -44,7 +44,7 @@ export function NewsPagination({
 
   return (
     <nav
-      className="flex flex-col gap-3 pt-8 border-t border-border/50"
+      className="flex flex-col gap-3 border-t border-border/50 pt-8"
       aria-label="페이지 탐색"
     >
       <div className="flex items-center justify-between">
@@ -56,7 +56,7 @@ export function NewsPagination({
           aria-label="이전 페이지로 이동"
         >
           <ChevronLeft className="h-4 w-4" />
-          <span className="hidden sm:inline ml-1">이전</span>
+          <span className="ml-1 hidden sm:inline">이전</span>
         </Button>
 
         {/* 페이지 정보 */}
@@ -71,7 +71,7 @@ export function NewsPagination({
           onClick={() => handlePageChange(currentPage + 1)}
           aria-label="다음 페이지로 이동"
         >
-          <span className="hidden sm:inline mr-1">다음</span>
+          <span className="mr-1 hidden sm:inline">다음</span>
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>

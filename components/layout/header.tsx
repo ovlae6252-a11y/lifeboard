@@ -10,10 +10,7 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-sm">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
         <div className="flex items-center gap-8">
-          <Link
-            href="/protected"
-            className="text-lg font-bold tracking-tight"
-          >
+          <Link href="/protected" className="text-lg font-bold tracking-tight">
             Lifeboard
           </Link>
           <nav className="hidden items-center gap-6 md:flex">

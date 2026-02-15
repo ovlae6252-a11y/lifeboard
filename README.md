@@ -15,13 +15,13 @@ MVP 단계에서는 한국 주요 언론사 RSS 뉴스 수집, AI 기반 팩트 
 
 ## 기술 스택
 
-| 영역 | 기술 |
-|------|------|
-| 프레임워크 | Next.js 16 (App Router, Turbopack, Cache Components) |
-| UI | React 19, Tailwind CSS 3, shadcn/ui (new-york), Radix UI |
-| 백엔드 | Supabase (PostgreSQL, Auth, RLS, RPC, Realtime) |
-| AI 요약 | Ollama (qwen2.5:14b, 로컬 LLM) |
-| 배포 | Vercel (Cron 작업 포함) |
+| 영역       | 기술                                                     |
+| ---------- | -------------------------------------------------------- |
+| 프레임워크 | Next.js 16 (App Router, Turbopack, Cache Components)     |
+| UI         | React 19, Tailwind CSS 3, shadcn/ui (new-york), Radix UI |
+| 백엔드     | Supabase (PostgreSQL, Auth, RLS, RPC, Realtime)          |
+| AI 요약    | Ollama (qwen2.5:14b, 로컬 LLM)                           |
+| 배포       | Vercel (Cron 작업 포함)                                  |
 
 ## 아키텍처
 
@@ -142,13 +142,13 @@ docs/
 
 ## 데이터베이스 스키마
 
-| 테이블 | 설명 |
-|--------|------|
-| `news_sources` | RSS 피드 소스 (언론사명, 피드 URL, 카테고리) |
-| `news_article_groups` | 유사 기사 그룹 (대표 기사, 팩트 요약, 카테고리) |
-| `news_articles` | 개별 기사 (제목, URL, 소스, 그룹 연결) |
-| `news_fetch_logs` | 수집 로그 (소스별 성공/실패, 수집 개수) |
-| `summarize_jobs` | AI 요약 작업 큐 (상태: pending/processing/completed/failed) |
+| 테이블                | 설명                                                        |
+| --------------------- | ----------------------------------------------------------- |
+| `news_sources`        | RSS 피드 소스 (언론사명, 피드 URL, 카테고리)                |
+| `news_article_groups` | 유사 기사 그룹 (대표 기사, 팩트 요약, 카테고리)             |
+| `news_articles`       | 개별 기사 (제목, URL, 소스, 그룹 연결)                      |
+| `news_fetch_logs`     | 수집 로그 (소스별 성공/실패, 수집 개수)                     |
+| `summarize_jobs`      | AI 요약 작업 큐 (상태: pending/processing/completed/failed) |
 
 ## 개발 진행 상황
 

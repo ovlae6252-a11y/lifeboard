@@ -12,8 +12,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm run dev          # 개발 서버 (localhost:3000)
 npm run build        # 프로덕션 빌드 (Turbopack)
 npm run lint         # ESLint 실행
+npm run lint:fix     # ESLint 자동 수정
+npm run format       # Prettier 전체 포매팅
+npm run format:check # Prettier 포매팅 상태 확인
+npm run type-check   # TypeScript 타입 검사
 npx supabase db push # DB 마이그레이션 적용 (원격 Supabase)
 ```
+
+### 코드 품질 도구
+
+- **Prettier** - 코드 포매터 (`prettier-plugin-tailwindcss`로 Tailwind 클래스 자동 정렬)
+- **ESLint** + `eslint-config-prettier` - 린터 (Prettier와 충돌 없음)
+- **Husky** + **lint-staged** - 커밋 시 스테이징된 파일에 자동 린트/포매팅 (`pre-commit` hook)
 
 ## 기술 스택
 

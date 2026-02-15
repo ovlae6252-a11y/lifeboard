@@ -19,8 +19,7 @@ export async function GET(request: NextRequest) {
   const next = searchParams.get("next") ?? "/";
 
   // Open Redirect 방지: 순수 상대 경로만 허용 (///host, /\host 등 우회 차단)
-  const safeNext =
-    next.startsWith("/") && !next.match(/^\/[\\/]/) ? next : "/";
+  const safeNext = next.startsWith("/") && !next.match(/^\/[\\/]/) ? next : "/";
 
   // OTP 타입 런타임 검증
   const type = validOtpTypes.includes(typeParam as EmailOtpType)
@@ -41,5 +40,7 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  redirect(`/auth/error?error=${encodeURIComponent("유효하지 않은 인증 요청입니다")}`);
+  redirect(
+    `/auth/error?error=${encodeURIComponent("유효하지 않은 인증 요청입니다")}`,
+  );
 }

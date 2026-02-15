@@ -1,12 +1,7 @@
 import { ExternalLink } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { getCategoryLabel } from "@/lib/news/categories";
 import type { NewsGroupWithArticles } from "@/lib/news/queries";
@@ -32,23 +27,32 @@ export function NewsGroupCard({ group }: NewsGroupCardProps) {
   // 원문 링크 (최대 3개 + 나머지, null 방어)
   const safeArticles = articles ?? [];
   const visibleArticles = safeArticles.slice(0, MAX_VISIBLE_ARTICLES);
-  const remainingCount = Math.max(0, safeArticles.length - MAX_VISIBLE_ARTICLES);
+  const remainingCount = Math.max(
+    0,
+    safeArticles.length - MAX_VISIBLE_ARTICLES,
+  );
 
   return (
     <Card className="group transition-colors hover:border-primary/20">
       <CardHeader className="space-y-3 pb-4">
         {/* 카테고리 배지 + 상대 시간 */}
         <div className="flex items-center justify-between">
-          <Badge variant="outline" className="rounded-full border-transparent bg-primary/10 text-xs font-medium text-primary">
+          <Badge
+            variant="outline"
+            className="rounded-full border-transparent bg-primary/10 text-xs font-medium text-primary"
+          >
             {getCategoryLabel(group.category)}
           </Badge>
-          <time dateTime={publishedAt} className="text-xs text-muted-foreground">
+          <time
+            dateTime={publishedAt}
+            className="text-xs text-muted-foreground"
+          >
             {formatRelativeTime(publishedAt)}
           </time>
         </div>
 
         {/* 대표 기사 제목 */}
-        <CardTitle className="text-lg leading-snug line-clamp-2">
+        <CardTitle className="line-clamp-2 text-lg leading-snug">
           {title}
         </CardTitle>
       </CardHeader>
@@ -58,14 +62,17 @@ export function NewsGroupCard({ group }: NewsGroupCardProps) {
         {hasSummary && facts.length > 0 ? (
           <ul className="space-y-2 border-l-2 border-accent pl-4">
             {facts.map((fact, i) => (
-              <li key={i} className="flex items-start gap-2.5 text-sm leading-relaxed text-muted-foreground">
+              <li
+                key={i}
+                className="flex items-start gap-2.5 text-sm leading-relaxed text-muted-foreground"
+              >
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary/60" />
                 {fact}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm leading-relaxed text-muted-foreground line-clamp-3">
+          <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">
             {rep?.description ?? "요약을 처리하고 있습니다..."}
           </p>
         )}
@@ -92,12 +99,10 @@ export function NewsGroupCard({ group }: NewsGroupCardProps) {
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 rounded-md px-1 py-0.5 transition-colors hover:bg-accent/50"
               >
-                <span className="shrink-0 text-[10px] text-muted-foreground/70 w-14 truncate">
+                <span className="w-14 shrink-0 truncate text-[10px] text-muted-foreground/70">
                   {article.source?.name ?? "알 수 없음"}
                 </span>
-                <span className="flex-1 truncate text-sm">
-                  {article.title}
-                </span>
+                <span className="flex-1 truncate text-sm">{article.title}</span>
                 <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground/50" />
               </a>
             ))}

@@ -62,9 +62,7 @@ export default function Home() {
 
         <div className="relative z-10 mx-auto flex max-w-2xl flex-col items-center gap-8 text-center">
           {/* 뱃지 */}
-          <div
-            className="animate-fade-in-up inline-flex items-center gap-2 rounded-full border border-border bg-secondary/50 px-4 py-1.5 text-sm text-muted-foreground"
-          >
+          <div className="animate-fade-in-up inline-flex items-center gap-2 rounded-full border border-border bg-secondary/50 px-4 py-1.5 text-sm text-muted-foreground">
             <Sparkles className="h-3.5 w-3.5 text-accent" />
             AI 기반 뉴스 분석 대시보드
           </div>

@@ -8,7 +8,10 @@ interface NewsSkeletonProps {
   showPagination?: boolean;
 }
 
-export function NewsSkeleton({ count = 6, showPagination = false }: NewsSkeletonProps) {
+export function NewsSkeleton({
+  count = 6,
+  showPagination = false,
+}: NewsSkeletonProps) {
   return (
     <div className="space-y-0">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -61,7 +64,7 @@ export function NewsSkeleton({ count = 6, showPagination = false }: NewsSkeleton
 
       {/* 페이지네이션 스켈레톤 */}
       {showPagination && (
-        <div className="flex items-center justify-between pt-8 border-t border-border/50 mt-8">
+        <div className="mt-8 flex items-center justify-between border-t border-border/50 pt-8">
           <Skeleton className="h-10 w-24" />
           <Skeleton className="h-4 w-20" />
           <Skeleton className="h-10 w-24" />

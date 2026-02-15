@@ -72,7 +72,9 @@ export function toArticleInserts(
   source: NewsSource,
 ): ArticleInsert[] {
   return rawArticles
-    .filter((raw) => raw.guid && raw.title && raw.link && isValidHttpUrl(raw.link))
+    .filter(
+      (raw) => raw.guid && raw.title && raw.link && isValidHttpUrl(raw.link),
+    )
     .map((raw) => ({
       source_id: source.id,
       guid: raw.guid,

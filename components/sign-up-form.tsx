@@ -50,9 +50,7 @@ export function SignUpForm({
       if (error) throw error;
       router.push("/auth/sign-up-success");
     } catch (error: unknown) {
-      setError(
-        error instanceof Error ? error.message : "오류가 발생했습니다",
-      );
+      setError(error instanceof Error ? error.message : "오류가 발생했습니다");
     } finally {
       setIsLoading(false);
     }
@@ -103,9 +101,7 @@ export function SignUpForm({
                   onChange={(e) => setRepeatPassword(e.target.value)}
                 />
               </div>
-              {error && (
-                <p className="text-sm text-destructive">{error}</p>
-              )}
+              {error && <p className="text-sm text-destructive">{error}</p>}
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "계정 생성 중..." : "회원가입"}
               </Button>

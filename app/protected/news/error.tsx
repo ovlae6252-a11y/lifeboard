@@ -19,7 +19,7 @@ export default function NewsError({
 
   return (
     <div className="flex items-center justify-center py-12">
-      <Card className="max-w-md w-full">
+      <Card className="w-full max-w-md">
         <CardContent
           className="flex flex-col items-center gap-4 pt-8 text-center"
           role="alert"

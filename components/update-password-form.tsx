@@ -35,9 +35,7 @@ export function UpdatePasswordForm({
       if (error) throw error;
       router.push("/protected");
     } catch (error: unknown) {
-      setError(
-        error instanceof Error ? error.message : "오류가 발생했습니다",
-      );
+      setError(error instanceof Error ? error.message : "오류가 발생했습니다");
     } finally {
       setIsLoading(false);
     }
@@ -48,9 +46,7 @@ export function UpdatePasswordForm({
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">비밀번호 재설정</CardTitle>
-          <CardDescription>
-            새로운 비밀번호를 입력해주세요.
-          </CardDescription>
+          <CardDescription>새로운 비밀번호를 입력해주세요.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleUpdatePassword}>
@@ -66,9 +62,7 @@ export function UpdatePasswordForm({
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-              {error && (
-                <p className="text-sm text-destructive">{error}</p>
-              )}
+              {error && <p className="text-sm text-destructive">{error}</p>}
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "저장 중..." : "비밀번호 변경"}
               </Button>

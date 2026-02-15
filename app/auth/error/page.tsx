@@ -44,9 +44,7 @@ export default function Page({
         <div className="flex flex-col gap-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">
-                문제가 발생했습니다
-              </CardTitle>
+              <CardTitle className="text-2xl">문제가 발생했습니다</CardTitle>
             </CardHeader>
             <CardContent>
               <Suspense>
