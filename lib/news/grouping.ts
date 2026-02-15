@@ -15,22 +15,32 @@ export async function groupArticles(
   const supabase = createAdminClient();
   const results: GroupingResult[] = [];
 
+  // 1. 기사 ID 일괄 조회 (N+1 방지)
+  const guids = articles.map((a) => a.guid);
+  const articleIdMap = new Map<string, string>(); // guid → id
+
+  const BATCH_SIZE = 50;
+  for (let i = 0; i < guids.length; i += BATCH_SIZE) {
+    const batch = guids.slice(i, i + BATCH_SIZE);
+    const { data: fetched, error: fetchError } = await supabase
+      .from("news_articles")
+      .select("id, guid")
+      .in("guid", batch);
+
+    if (fetchError) {
+      console.error("[그룹핑] 기사 일괄 조회 실패:", fetchError.message);
+    }
+    (fetched ?? []).forEach((a) => articleIdMap.set(a.guid, a.id));
+  }
+
   for (const article of articles) {
     try {
-      // 1. 기사 ID 조회 (이미 INSERT된 상태)
-      const { data: existingArticle, error: fetchError } = await supabase
-        .from("news_articles")
-        .select("id")
-        .eq("source_id", article.source_id)
-        .eq("guid", article.guid)
-        .single();
+      const articleId = articleIdMap.get(article.guid);
 
-      if (fetchError || !existingArticle) {
-        console.warn(`[그룹핑] 기사 조회 실패 (guid: ${article.guid}):`, fetchError?.message);
+      if (!articleId) {
+        console.warn(`[그룹핑] 기사 ID 미발견 (guid: ${article.guid})`);
         continue;
       }
-
-      const articleId = existingArticle.id;
 
       // 2. 유사 그룹 검색
       const { data: similarGroup, error: rpcError } = await supabase.rpc(

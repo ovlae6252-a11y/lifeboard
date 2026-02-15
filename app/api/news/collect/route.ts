@@ -49,17 +49,20 @@ async function collectFromSource(
 
     const supabase = createAdminClient();
 
-    // 기존 기사의 guid 조회하여 중복 필터링
+    // 기존 기사의 guid 조회하여 중복 필터링 (배치 분할로 URL 길이 제한 방지)
     const guids = inserts.map((i) => i.guid);
-    const { data: existingArticles } = await supabase
-      .from("news_articles")
-      .select("guid")
-      .eq("source_id", source.id)
-      .in("guid", guids);
+    const existingGuids = new Set<string>();
+    const BATCH_SIZE = 50;
 
-    const existingGuids = new Set(
-      (existingArticles ?? []).map((a) => a.guid),
-    );
+    for (let i = 0; i < guids.length; i += BATCH_SIZE) {
+      const batch = guids.slice(i, i + BATCH_SIZE);
+      const { data: existingArticles } = await supabase
+        .from("news_articles")
+        .select("guid")
+        .eq("source_id", source.id)
+        .in("guid", batch);
+      (existingArticles ?? []).forEach((a) => existingGuids.add(a.guid));
+    }
     const newInserts = inserts.filter((i) => !existingGuids.has(i.guid));
 
     // 새 기사만 삽입

@@ -37,7 +37,7 @@ MVP 단계에서는 한국 주요 언론사 RSS 뉴스 수집, AI 기반 팩트 
 
 시스템은 세 부분으로 구성됩니다:
 
-1. **Vercel 웹앱 + Cron** - Next.js App Router 기반 웹 애플리케이션. Vercel Cron이 하루 2회(11시, 23시) RSS 수집 API를 호출
+1. **Vercel 웹앱 + Cron** - Next.js App Router 기반 웹 애플리케이션. Vercel Cron이 하루 2회(KST 8시, 20시) RSS 수집 API를 호출
 2. **Supabase PostgreSQL** - 데이터 저장소이자 메시지 큐 역할. `summarize_jobs` 테이블이 Vercel과 Ollama PC 사이의 작업 큐로 동작
 3. **Ollama PC 워커** - 별도 PC에서 `qwen2.5:14b` 모델을 구동. Supabase Realtime/폴링으로 pending 작업을 감지하여 팩트 요약을 자동 처리
 
@@ -134,7 +134,7 @@ lib/
   utils/              # 유틸리티 (상대 시간 포맷, 팩트 파싱)
 scripts/              # Ollama PC 워커 (독립 패키지)
 supabase/
-  migrations/         # DB 마이그레이션 SQL 파일 (10개)
+  migrations/         # DB 마이그레이션 SQL 파일 (11개)
 docs/
   PRD.md              # 제품 요구사항
   ROADMAP.md          # 개발 로드맵
@@ -156,7 +156,7 @@ docs/
 - [x] **Phase 1** - DB 스키마 + RSS 수집 파이프라인
 - [x] **Phase 2** - Ollama PC 워커
 - [x] **Phase 3** - 프론트엔드 뉴스 표시
-- [ ] **Phase 4** - 페이지네이션 + UX 개선
+- [x] **Phase 4** - 페이지네이션 + UX 개선
 - [ ] **Phase 5** - 통합 테스트 + 배포 준비
 
 ## 문서

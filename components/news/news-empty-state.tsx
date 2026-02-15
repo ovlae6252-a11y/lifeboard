@@ -21,7 +21,7 @@ export function NewsEmptyState({ category }: NewsEmptyStateProps) {
             뉴스는 하루 2회 자동으로 수집됩니다.
           </p>
           <p className="text-xs text-muted-foreground/70">
-            (오전 11시, 오후 11시)
+            (오전 8시, 오후 8시)
           </p>
         </div>
       </div>

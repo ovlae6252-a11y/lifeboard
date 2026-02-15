@@ -11,23 +11,19 @@ export async function enqueueSummarizeJobs(
   let enqueued = 0;
 
   for (const groupId of groupIds) {
-    // 이미 pending/processing 중인 작업이 있는지 확인
-    const { data: existing } = await supabase
-      .from("summarize_jobs")
-      .select("id")
-      .eq("group_id", groupId)
-      .in("status", ["pending", "processing"])
-      .limit(1);
-
-    if (existing && existing.length > 0) continue;
-
+    // INSERT 먼저 시도 — partial unique index가 중복 방지
     const { error } = await supabase.from("summarize_jobs").insert({
       group_id: groupId,
       status: "pending",
       requested_by: "system",
     });
 
-    if (!error) enqueued++;
+    if (!error) {
+      enqueued++;
+    } else if (error.code !== "23505") {
+      // unique constraint violation이 아닌 실제 에러만 로깅
+      console.error("[요약 큐] 작업 등록 실패:", error.message);
+    }
   }
 
   return enqueued;

@@ -33,6 +33,7 @@ npx supabase db push # DB 마이그레이션 적용 (원격 Supabase)
 - `client.ts` - Client Component용 (브라우저)
 - `proxy.ts` - Middleware(proxy)용. 세션 쿠키 갱신 및 미인증 사용자 리다이렉트 처리
 - `admin.ts` - service_role 클라이언트 (RLS 우회). **모듈 레벨 싱글톤 캐싱** (쿠키 의존성 없으므로 재사용 가능). API Route, Cron 작업 등 서버 전용
+- `database.types.ts` - Supabase CLI 생성 타입. 모든 클라이언트 팩토리에서 `<Database>` 제네릭으로 사용
 
 인증 상태 확인 시 `supabase.auth.getClaims()` 사용 (`getUser()` 대비 빠름).
 
@@ -75,7 +76,7 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
 
 `lib/news/`에 수집 + 프론트엔드 쿼리 모듈이 함께 위치:
 
-- 수집 흐름: Vercel Cron (하루 2회, 11시/23시) → `/api/news/collect` → RSS 파싱 → 중복 필터링 → DB INSERT → 그룹핑 → 요약 큐
+- 수집 흐름: Vercel Cron (하루 2회, KST 8시/20시 = UTC 23시/11시) → `/api/news/collect` → RSS 파싱 → 중복 필터링 → DB INSERT → 그룹핑 → 요약 큐
 - 프론트엔드 쿼리: `queries.ts`의 `getNewsGroups()`, `getLatestNewsGroups()`, `getNewsGroupArticles()`
 - Supabase embedded join 사용 시 FK 이름 명시 필요 (예: `news_articles!fk_representative_article`)
 - Vercel Cron은 `CRON_SECRET` 환경변수가 설정되면 자동으로 `Authorization: Bearer <CRON_SECRET>` 헤더를 포함하여 호출
@@ -110,6 +111,8 @@ RPC 함수 (service_role 전용, anon/authenticated 호출 불가):
 - 에러 메시지: 사용자에게 노출되는 메시지는 한국어로 작성
 - API Route 에러 응답: 프로덕션에서는 상세 에러 대신 일반적인 메시지 반환 (`process.env.NODE_ENV` 분기)
 - Supabase DB 작업 후 반드시 에러 확인 및 로깅 (`const { error } = await ...` 패턴)
+- Supabase `.in()` 쿼리는 50개 단위로 배치 분할 (PostgREST URL 길이 제한 방지)
+- Supabase 중복 INSERT 방지 시 check-then-insert 대신 INSERT-first + unique constraint violation(23505) 핸들링
 
 ## 환경 변수
 

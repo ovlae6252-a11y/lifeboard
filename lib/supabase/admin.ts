@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import type { Database } from "./database.types";
 import { getSupabaseEnv } from "./env";
 
 // service_role 키 환경변수 검증
@@ -22,7 +23,7 @@ function _create() {
   const { url } = getSupabaseEnv();
   const serviceRoleKey = getServiceRoleKey();
 
-  return createClient(url, serviceRoleKey, {
+  return createClient<Database>(url, serviceRoleKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,

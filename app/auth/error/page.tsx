@@ -1,11 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Suspense } from "react";
 
+const MAX_ERROR_LENGTH = 200;
+
 function safeDecodeURIComponent(value: string): string {
   try {
-    return decodeURIComponent(value);
+    return decodeURIComponent(value).slice(0, MAX_ERROR_LENGTH);
   } catch {
-    return value;
+    return value.slice(0, MAX_ERROR_LENGTH);
   }
 }
 

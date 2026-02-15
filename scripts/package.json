@@ -7,9 +7,9 @@
     "dev": "npx tsx --watch worker.ts"
   },
   "dependencies": {
-    "@supabase/supabase-js": "latest",
-    "ollama": "latest",
-    "dotenv": "latest",
-    "tsx": "latest"
+    "@supabase/supabase-js": "^2.95.0",
+    "ollama": "^0.5.0",
+    "dotenv": "^16.0.0",
+    "tsx": "^4.0.0"
   }
 }

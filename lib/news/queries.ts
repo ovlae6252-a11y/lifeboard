@@ -93,7 +93,7 @@ export async function getNewsGroups(options?: {
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
-  const { data, error, count } = await query;
+  const { data, error, count } = await query.returns<NewsGroupWithArticles[]>();
 
   if (error) {
     console.error("뉴스 그룹 조회 실패:", error.message);
@@ -101,7 +101,7 @@ export async function getNewsGroups(options?: {
   }
 
   return {
-    groups: (data ?? []) as unknown as NewsGroupWithArticles[],
+    groups: data ?? [],
     count: count ?? 0,
   };
 }
