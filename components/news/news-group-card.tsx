@@ -29,9 +29,10 @@ export function NewsGroupCard({ group }: NewsGroupCardProps) {
   const hasSummary = group.is_summarized && group.fact_summary;
   const facts = hasSummary ? parseFacts(group.fact_summary!) : [];
 
-  // 원문 링크 (최대 3개 + 나머지)
-  const visibleArticles = articles.slice(0, MAX_VISIBLE_ARTICLES);
-  const remainingCount = articles.length - MAX_VISIBLE_ARTICLES;
+  // 원문 링크 (최대 3개 + 나머지, null 방어)
+  const safeArticles = articles ?? [];
+  const visibleArticles = safeArticles.slice(0, MAX_VISIBLE_ARTICLES);
+  const remainingCount = Math.max(0, safeArticles.length - MAX_VISIBLE_ARTICLES);
 
   return (
     <Card className="group transition-colors hover:border-primary/20">

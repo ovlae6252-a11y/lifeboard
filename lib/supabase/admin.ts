@@ -15,7 +15,10 @@ function getServiceRoleKey() {
 
 // 서버 전용 service_role 클라이언트 (RLS 우회)
 // API Route, Cron 작업 등에서 사용
-export function createAdminClient() {
+// 쿠키 의존성이 없으므로 모듈 레벨에서 캐싱하여 재사용
+let _adminClient: ReturnType<typeof _create> | undefined;
+
+function _create() {
   const { url } = getSupabaseEnv();
   const serviceRoleKey = getServiceRoleKey();
 
@@ -25,4 +28,11 @@ export function createAdminClient() {
       persistSession: false,
     },
   });
+}
+
+export function createAdminClient() {
+  if (!_adminClient) {
+    _adminClient = _create();
+  }
+  return _adminClient;
 }

@@ -1,6 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Suspense } from "react";
 
+function safeDecodeURIComponent(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 async function ErrorContent({
   searchParams,
 }: {
@@ -12,7 +20,7 @@ async function ErrorContent({
     <>
       {params?.error ? (
         <p className="text-sm text-muted-foreground">
-          오류 내용: {decodeURIComponent(params.error)}
+          오류 내용: {safeDecodeURIComponent(params.error)}
         </p>
       ) : (
         <p className="text-sm text-muted-foreground">

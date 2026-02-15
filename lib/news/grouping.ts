@@ -52,14 +52,23 @@ export async function groupArticles(
         // 유사 그룹 존재 → 기존 그룹에 추가
         const groupId = similarGroup[0].group_id;
 
-        await supabase
+        const { error: updateError } = await supabase
           .from("news_articles")
           .update({ group_id: groupId })
           .eq("id", articleId);
 
-        await supabase.rpc("increment_article_count", {
+        if (updateError) {
+          console.error(`[그룹핑] 기사 그룹 할당 실패 (기사 ${articleId}):`, updateError.message);
+          continue;
+        }
+
+        const { error: incError } = await supabase.rpc("increment_article_count", {
           p_group_id: groupId,
         });
+
+        if (incError) {
+          console.error(`[그룹핑] article_count 증가 실패 (그룹 ${groupId}):`, incError.message);
+        }
 
         results.push({ article_id: articleId, group_id: groupId, is_new_group: false });
       } else {
@@ -79,10 +88,14 @@ export async function groupArticles(
           continue;
         }
 
-        await supabase
+        const { error: assignError } = await supabase
           .from("news_articles")
           .update({ group_id: newGroup.id })
           .eq("id", articleId);
+
+        if (assignError) {
+          console.error(`[그룹핑] 기사 그룹 할당 실패 (기사 ${articleId}):`, assignError.message);
+        }
 
         results.push({ article_id: articleId, group_id: newGroup.id, is_new_group: true });
       }

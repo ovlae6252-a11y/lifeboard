@@ -177,7 +177,16 @@ async function startWorker(): Promise<void> {
       },
       async (payload) => {
         log("[Realtime] 새 작업 감지:", payload.new.id);
-        await processJob(payload.new as SummarizeJob);
+        if (isProcessing) {
+          log("[Realtime] 이미 처리 중 - 다음 폴링에서 처리");
+          return;
+        }
+        isProcessing = true;
+        try {
+          await processJob(payload.new as SummarizeJob);
+        } finally {
+          isProcessing = false;
+        }
       },
     )
     .subscribe((status) => {

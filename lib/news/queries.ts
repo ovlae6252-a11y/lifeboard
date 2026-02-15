@@ -82,14 +82,16 @@ export async function getNewsGroups(options?: {
 
   let query = supabase
     .from("news_article_groups")
-    .select(NEWS_GROUP_SELECT, { count: "exact" })
-    .order("created_at", { ascending: false })
-    .range(offset, offset + limit - 1);
+    .select(NEWS_GROUP_SELECT, { count: "exact" });
 
-  // 카테고리 필터 적용
+  // 카테고리 필터 적용 (order/range 이전에 적용하여 정확한 count 보장)
   if (category && category !== "all") {
     query = query.eq("category", category);
   }
+
+  query = query
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
 
   const { data, error, count } = await query;
 

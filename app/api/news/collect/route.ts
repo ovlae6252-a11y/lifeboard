@@ -156,6 +156,8 @@ async function handleCollect(request: NextRequest) {
     if (settled.status === "fulfilled") {
       fetchResults.push(settled.value.result);
       allNewArticles.push(...settled.value.newArticles);
+    } else {
+      console.error("[RSS 수집] 예상치 못한 오류:", settled.reason);
     }
   }
 
