@@ -199,19 +199,19 @@
 
 #### 마일스톤 2.1: 워커 스크립트 구현 (F003)
 
-- [ ] 태스크 2.1.1: 워커 프로젝트 초기 설정
+- [x] 태스크 2.1.1: 워커 프로젝트 초기 설정
   - 상세: `scripts/` 디렉토리에 독립 패키지 생성. `package.json` (name: "lifeboard-worker", dependencies: @supabase/supabase-js, ollama, tsx), `.env.example` (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, OLLAMA_BASE_URL, OLLAMA_MODEL), `tsconfig.json` 작성.
   - 관련 파일: `scripts/package.json`, `scripts/.env.example`, `scripts/tsconfig.json`
 
-- [ ] 태스크 2.1.2: Ollama 팩트 추출 모듈 구현
+- [x] 태스크 2.1.2: Ollama 팩트 추출 모듈 구현
   - 상세: Ollama API (`ollama` npm 패키지)를 사용하여 뉴스 그룹 내 기사 제목+요약을 입력받아 팩트 요약을 생성하는 함수. PRD에 정의된 팩트 추출 프롬프트 적용. 타임아웃, 재시도 로직 포함.
   - 관련 파일: `scripts/summarizer.ts`
 
-- [ ] 태스크 2.1.3: 메인 워커 스크립트 구현
+- [x] 태스크 2.1.3: 메인 워커 스크립트 구현
   - 상세: Supabase Realtime 구독으로 `summarize_jobs` INSERT 이벤트 감지. Realtime 연결 끊김 시 30초마다 폴링 폴백. pending 작업 감지 -> status를 processing으로 변경 -> 해당 그룹 기사 조회 -> `summarizer.ts`로 팩트 추출 -> `news_article_groups.fact_summary` 저장 -> status를 completed로 변경. 실패 시 status를 failed로 + error_message 기록. 동시 처리 방지를 위한 낙관적 잠금 (status 갱신 시 current_status 확인).
   - 관련 파일: `scripts/worker.ts`
 
-- [ ] 태스크 2.1.4: 워커 설정 가이드 문서 작성
+- [x] 태스크 2.1.4: 워커 설정 가이드 문서 작성
   - 상세: Ollama PC 설정 방법 (Ollama 설치, 모델 다운로드, scripts/ 복사, npm install, .env 설정, npm start). Windows 서비스 등록 방법 (선택).
   - 관련 파일: `scripts/README.md`
 

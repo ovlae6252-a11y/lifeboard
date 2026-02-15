@@ -87,6 +87,17 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
 
 Vercel Cron은 `CRON_SECRET` 환경변수가 설정되면 자동으로 `Authorization: Bearer <CRON_SECRET>` 헤더를 포함하여 호출함.
 
+### Ollama PC 워커 (scripts/)
+
+`scripts/` 디렉토리는 메인 Next.js 프로젝트와 **독립된 패키지**. Ollama가 설치된 PC에서 상주 실행.
+
+- `worker.ts` - 메인 워커 (Supabase Realtime 구독 + 30초 폴링으로 summarize_jobs 큐 감시)
+- `summarizer.ts` - Ollama 팩트 추출 모듈 (PRD 프롬프트, 120초 타임아웃, 3회 재시도)
+- `package.json` - 독립 패키지 (dependencies: @supabase/supabase-js, ollama, dotenv, tsx)
+- `.env.example` - Ollama PC용 환경변수 (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, OLLAMA_BASE_URL, OLLAMA_MODEL)
+
+작업 흐름: pending 감지 → 낙관적 잠금(WHERE status=pending) → 기사 조회 → Ollama 요약 → fact_summary 저장 → completed
+
 ### DB 마이그레이션
 
 `supabase/migrations/`에 SQL 마이그레이션 파일 관리. `npx supabase db push`로 적용.
