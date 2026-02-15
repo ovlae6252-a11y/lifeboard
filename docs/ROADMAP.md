@@ -250,7 +250,7 @@
   - 상세: `published_at`을 "3시간 전", "어제", "2일 전" 등으로 변환하는 함수. 외부 라이브러리 없이 구현하거나 가벼운 라이브러리 사용.
   - 관련 파일: `lib/utils/format-time.ts`
 
-- [ ] 태스크 3.2.5: Playwright MCP 테스트 - 뉴스 그룹 카드 렌더링
+- [x] 태스크 3.2.5: Playwright MCP 테스트 - 뉴스 그룹 카드 렌더링
   - 사전 조건: 태스크 3.2.2 완료, DB에 테스트 데이터 존재
   - 검증 항목:
     1. `browser_navigate`로 `/protected/news` 접근 -> 페이지 정상 로드
@@ -273,7 +273,7 @@
   - 상세: `app/protected/news/page.tsx` 구현. Server Component. `searchParams`에서 `category` 파라미터 추출. `getNewsGroups(category)` 호출. `NewsCategoryTabs` + `NewsList` 조합. `Suspense` + `NewsSkeleton` fallback 적용.
   - 관련 파일: `app/protected/news/page.tsx`
 
-- [ ] 태스크 3.3.4: Playwright MCP 테스트 - 카테고리 필터링
+- [x] 태스크 3.3.4: Playwright MCP 테스트 - 카테고리 필터링
   - 사전 조건: 태스크 3.3.3 완료
   - 검증 항목:
     1. `browser_navigate`로 `/protected/news` 접근 -> "전체" 탭 활성 상태 확인
@@ -294,7 +294,7 @@
   - 상세: `app/protected/page.tsx`에서 Starter Kit 튜토리얼 콘텐츠 제거. `NewsDashboardSection` 컴포넌트 배치. Server Component로 `getLatestNewsGroups(6)` 호출. `Suspense` + 스켈레톤 fallback 적용. 향후 다른 라이프 데이터 섹션 추가를 위한 구조 마련 (섹션 간 간격 등).
   - 관련 파일: `app/protected/page.tsx`
 
-- [ ] 태스크 3.4.3: Playwright MCP 테스트 - 대시보드 뉴스 섹션
+- [x] 태스크 3.4.3: Playwright MCP 테스트 - 대시보드 뉴스 섹션
   - 사전 조건: 태스크 3.4.2 완료
   - 검증 항목:
     1. `browser_navigate`로 `/protected` 접근 -> "최신 뉴스" 섹션 존재 확인

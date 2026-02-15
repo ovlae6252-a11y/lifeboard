@@ -32,7 +32,7 @@ npx supabase db push # DB 마이그레이션 적용 (원격 Supabase)
 - `server.ts` - Server Component/Server Action용. **요청마다 새로 생성** (전역 변수 금지)
 - `client.ts` - Client Component용 (브라우저)
 - `proxy.ts` - Middleware(proxy)용. 세션 쿠키 갱신 및 미인증 사용자 리다이렉트 처리
-- `admin.ts` - service_role 클라이언트 (RLS 우회). API Route, Cron 작업 등 서버 전용
+- `admin.ts` - service_role 클라이언트 (RLS 우회). **모듈 레벨 싱글톤 캐싱** (쿠키 의존성 없으므로 재사용 가능). API Route, Cron 작업 등 서버 전용
 
 인증 상태 확인 시 `supabase.auth.getClaims()` 사용 (`getUser()` 대비 빠름).
 
@@ -53,20 +53,11 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
 ### 컴포넌트 패턴
 
 - `components/ui/` - shadcn/ui 기본 컴포넌트 (`npx shadcn@latest add <name>`으로 추가)
-- `components/layout/` - 공통 레이아웃
-  - `nav-links.ts` - 네비게이션 링크 상수 (header, mobile-nav에서 공유)
-  - `header.tsx` - Server Component. AuthButton(서버), ThemeSwitcher(클라이언트), MobileNav(클라이언트) 조합
-  - `mobile-nav.tsx` - Client Component. Sheet 기반, 768px 이하
-  - `footer.tsx` - Client Component (`new Date()` 사용)
-- `components/news/` - 뉴스 UI 컴포넌트
-  - `news-group-card.tsx` - Server Component. Card 기반 뉴스 그룹 카드 (팩트 요약 불릿, 원문 링크)
-  - `news-category-tabs.tsx` - Client Component. shadcn/ui Tabs 기반, URL 쿼리 파라미터 동기화
-  - `news-list.tsx` - Server Component. 반응형 그리드 (1열/2열) + 빈 상태 처리
-  - `news-skeleton.tsx` - 스켈레톤 로딩 (Suspense fallback)
-  - `news-dashboard-section.tsx` - async Server Component. 대시보드 최신 6개 뉴스
-- `components/` 루트 - 인증 관련 컴포넌트
-  - `auth-button.tsx` - **Server Component**. `getClaims()`로 인증 상태 확인. 반드시 `<Suspense>` 안에서 사용
-  - `login-form.tsx`, `sign-up-form.tsx` 등 - Client Component
+- `components/layout/` - 공통 레이아웃 (header, mobile-nav, footer, nav-links 상수)
+  - `header.tsx`는 Server Component. AuthButton(서버) + ThemeSwitcher/MobileNav(클라이언트) 조합
+  - `footer.tsx`는 Client Component (`new Date()` 사용)
+- `components/news/` - 뉴스 UI 컴포넌트 (Server/Client 분리)
+- `components/` 루트 - 인증 관련 컴포넌트 (`auth-button.tsx`는 Server Component, 반드시 `<Suspense>` 안에서 사용)
 
 ### Server/Client Component 경계 규칙
 
@@ -82,36 +73,20 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
 
 ### 뉴스 수집 파이프라인
 
-`lib/news/`에 수집 관련 모듈:
-- `types.ts` - 뉴스 관련 타입 정의
-- `normalize-title.ts` - 제목 정규화 (태그 제거, 특수문자 제거, 소문자 변환)
-- `rss-fetcher.ts` - RSS 피드 파싱 (`rss-parser`, 5초 타임아웃, 이미지 URL은 http/https만 허용)
-- `grouping.ts` - 유사 기사 그룹핑 (`find_similar_group` RPC, 유사도 0.6, 48시간 범위)
-- `fetch-logger.ts` - 수집 로그 기록
-- `summarize-queue.ts` - AI 요약 작업 큐 관리
-- `categories.ts` - 뉴스 카테고리 상수 및 getCategoryLabel 헬퍼
-- `queries.ts` - 프론트엔드용 데이터 페칭 함수 (getNewsGroups, getLatestNewsGroups, getNewsGroupArticles)
+`lib/news/`에 수집 + 프론트엔드 쿼리 모듈이 함께 위치:
 
-### 유틸리티 함수
-
-`lib/utils/`에 공통 유틸리티:
-- `format-time.ts` - 상대 시간 표시 (formatRelativeTime: "방금 전", "N분 전", "어제" 등)
-- `parse-facts.ts` - AI 팩트 요약 텍스트를 배열로 파싱 (parseFacts)
-
-수집 흐름: Vercel Cron (매시 정각) → `/api/news/collect` → RSS 파싱 → 중복 필터링 → DB INSERT → 그룹핑 → 요약 큐
-
-Vercel Cron은 `CRON_SECRET` 환경변수가 설정되면 자동으로 `Authorization: Bearer <CRON_SECRET>` 헤더를 포함하여 호출함.
+- 수집 흐름: Vercel Cron (하루 2회, 11시/23시) → `/api/news/collect` → RSS 파싱 → 중복 필터링 → DB INSERT → 그룹핑 → 요약 큐
+- 프론트엔드 쿼리: `queries.ts`의 `getNewsGroups()`, `getLatestNewsGroups()`, `getNewsGroupArticles()`
+- Supabase embedded join 사용 시 FK 이름 명시 필요 (예: `news_articles!fk_representative_article`)
+- Vercel Cron은 `CRON_SECRET` 환경변수가 설정되면 자동으로 `Authorization: Bearer <CRON_SECRET>` 헤더를 포함하여 호출
 
 ### Ollama PC 워커 (scripts/)
 
-`scripts/` 디렉토리는 메인 Next.js 프로젝트와 **독립된 패키지**. Ollama가 설치된 PC에서 상주 실행.
+`scripts/` 디렉토리는 메인 Next.js 프로젝트와 **독립된 패키지**. `tsconfig.json`의 `exclude`에 포함되어 빌드 충돌 방지. Ollama가 설치된 PC에서 상주 실행.
 
-- `worker.ts` - 메인 워커 (Supabase Realtime 구독 + 30초 폴링으로 summarize_jobs 큐 감시)
-- `summarizer.ts` - Ollama 팩트 추출 모듈 (PRD 프롬프트, 120초 타임아웃, 3회 재시도)
-- `package.json` - 독립 패키지 (dependencies: @supabase/supabase-js, ollama, dotenv, tsx)
-- `.env.example` - Ollama PC용 환경변수 (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, OLLAMA_BASE_URL, OLLAMA_MODEL)
-
-작업 흐름: pending 감지 → 낙관적 잠금(WHERE status=pending) → 기사 조회 → Ollama 요약 → fact_summary 저장 → completed
+- `worker.ts` - 메인 워커 (Supabase Realtime 구독 + 30초 폴링, `isProcessing` 플래그로 동시성 제어)
+- `summarizer.ts` - Ollama 팩트 추출 모듈 (120초 타임아웃, 3회 재시도)
+- 작업 흐름: pending 감지 → 낙관적 잠금(WHERE status=pending) → 기사 조회 → Ollama 요약 → fact_summary 저장 → completed
 
 ### DB 마이그레이션
 
@@ -123,6 +98,8 @@ RPC 함수 (service_role 전용, anon/authenticated 호출 불가):
 - `find_similar_group` - 트라이그램 유사도 기반 그룹 검색
 - `increment_article_count` - 그룹 기사 수 갱신
 
+`summarize_jobs` 테이블에는 `(group_id) WHERE status IN ('pending', 'processing')` partial unique index가 있어 동일 그룹에 대한 중복 작업 생성을 방지함.
+
 ## 코딩 규칙
 
 - 경로 별칭: `@/*` (프로젝트 루트 기준)
@@ -132,6 +109,7 @@ RPC 함수 (service_role 전용, anon/authenticated 호출 불가):
 - CSS 색상: `globals.css`의 HSL CSS 변수 사용 (하드코딩 금지). 에러 텍스트는 `text-destructive` (`text-red-500` 사용 금지)
 - 에러 메시지: 사용자에게 노출되는 메시지는 한국어로 작성
 - API Route 에러 응답: 프로덕션에서는 상세 에러 대신 일반적인 메시지 반환 (`process.env.NODE_ENV` 분기)
+- Supabase DB 작업 후 반드시 에러 확인 및 로깅 (`const { error } = await ...` 패턴)
 
 ## 환경 변수
 
