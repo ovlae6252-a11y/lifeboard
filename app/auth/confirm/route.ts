@@ -18,8 +18,9 @@ export async function GET(request: NextRequest) {
   const typeParam = searchParams.get("type");
   const next = searchParams.get("next") ?? "/";
 
-  // Open Redirect 방지: 상대 경로만 허용
-  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/";
+  // Open Redirect 방지: 순수 상대 경로만 허용 (///host, /\host 등 우회 차단)
+  const safeNext =
+    next.startsWith("/") && !next.match(/^\/[\\/]/) ? next : "/";
 
   // OTP 타입 런타임 검증
   const type = validOtpTypes.includes(typeParam as EmailOtpType)
