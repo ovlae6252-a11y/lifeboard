@@ -29,7 +29,7 @@ npx supabase db push # DB 마이그레이션 적용 (원격 Supabase)
 
 - **Next.js 16** (App Router, Turbopack, `cacheComponents: true`) + React 19 + TypeScript (strict)
 - **Supabase** (@supabase/ssr) - 인증 및 백엔드
-- **Tailwind CSS 3** + CSS 변수 기반 테마 (다크모드: `next-themes`, class 방식)
+- **Tailwind CSS 4** + CSS 변수 기반 테마 (다크모드: `next-themes`, class 방식, `@custom-variant dark`)
 - **shadcn/ui** (new-york 스타일, Radix UI, lucide-react 아이콘)
 
 ## 아키텍처
@@ -117,7 +117,8 @@ RPC 함수 (service_role 전용, anon/authenticated 호출 불가):
 - 들여쓰기: 2칸
 - 주석/커밋/문서/UI 텍스트: 한국어
 - 변수명/함수명: 영어
-- CSS 색상: `globals.css`의 HSL CSS 변수 사용 (하드코딩 금지). 에러 텍스트는 `text-destructive` (`text-red-500` 사용 금지)
+- CSS 색상: `globals.css`의 OKLCH CSS 변수 사용 (하드코딩 금지). 에러 텍스트는 `text-destructive` (`text-red-500` 사용 금지)
+- Tailwind CSS 설정: `tailwind.config.ts` 없음. 모든 테마 설정은 `globals.css`의 `@theme inline` 블록에서 관리. `@import "tailwindcss"` + `@import "tw-animate-css"` 사용
 - 에러 메시지: 사용자에게 노출되는 메시지는 한국어로 작성
 - API Route 에러 응답: 프로덕션에서는 상세 에러 대신 일반적인 메시지 반환 (`process.env.NODE_ENV` 분기)
 - Supabase DB 작업 후 반드시 에러 확인 및 로깅 (`const { error } = await ...` 패턴)

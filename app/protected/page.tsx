@@ -17,7 +17,7 @@ async function DashboardContent() {
     <div className="space-y-12">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">대시보드</h1>
-        <p className="mt-1 text-muted-foreground">
+        <p className="text-muted-foreground mt-1">
           라이프보드에 오신 것을 환영합니다.
         </p>
       </div>

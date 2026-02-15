@@ -42,7 +42,7 @@ export function MobileNav() {
               className={cn(
                 "rounded-md px-3 py-2 text-sm transition-colors",
                 pathname === href
-                  ? "bg-secondary font-medium text-foreground"
+                  ? "bg-secondary text-foreground font-medium"
                   : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground",
               )}
             >

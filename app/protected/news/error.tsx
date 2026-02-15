@@ -25,14 +25,14 @@ export default function NewsError({
           role="alert"
         >
           <AlertCircle
-            className="h-12 w-12 text-destructive"
+            className="text-destructive h-12 w-12"
             aria-hidden="true"
           />
           <div className="space-y-2">
             <h2 className="text-lg font-semibold">
               뉴스를 불러오는 중 문제가 발생했습니다
             </h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               잠시 후 다시 시도해 주세요
             </p>
           </div>

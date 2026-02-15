@@ -54,7 +54,7 @@ export function ForgotPasswordForm({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               이메일과 비밀번호로 가입하신 경우, 비밀번호 재설정 이메일이
               발송됩니다.
             </p>
@@ -82,7 +82,7 @@ export function ForgotPasswordForm({
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
-                {error && <p className="text-sm text-destructive">{error}</p>}
+                {error && <p className="text-destructive text-sm">{error}</p>}
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "전송 중..." : "재설정 이메일 보내기"}
                 </Button>

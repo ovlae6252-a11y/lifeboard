@@ -44,7 +44,7 @@ export function NewsPagination({
 
   return (
     <nav
-      className="flex flex-col gap-3 border-t border-border/50 pt-8"
+      className="border-border/50 flex flex-col gap-3 border-t pt-8"
       aria-label="페이지 탐색"
     >
       <div className="flex items-center justify-between">
@@ -60,7 +60,7 @@ export function NewsPagination({
         </Button>
 
         {/* 페이지 정보 */}
-        <span className="text-sm text-muted-foreground">
+        <span className="text-muted-foreground text-sm">
           {currentPage} / {totalPages} 페이지
         </span>
 
@@ -77,7 +77,7 @@ export function NewsPagination({
       </div>
 
       {/* 총 건수 */}
-      <p className="text-center text-xs text-muted-foreground">
+      <p className="text-muted-foreground text-center text-xs">
         전체 {totalCount}건
       </p>
     </nav>

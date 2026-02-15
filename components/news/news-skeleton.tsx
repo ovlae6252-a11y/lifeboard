@@ -64,7 +64,7 @@ export function NewsSkeleton({
 
       {/* 페이지네이션 스켈레톤 */}
       {showPagination && (
-        <div className="mt-8 flex items-center justify-between border-t border-border/50 pt-8">
+        <div className="border-border/50 mt-8 flex items-center justify-between border-t pt-8">
           <Skeleton className="h-10 w-24" />
           <Skeleton className="h-4 w-20" />
           <Skeleton className="h-10 w-24" />

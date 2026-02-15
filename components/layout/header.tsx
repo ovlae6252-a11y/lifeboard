@@ -7,7 +7,7 @@ import { navLinks } from "./nav-links";
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-sm">
+    <header className="border-border/50 bg-background/80 sticky top-0 z-50 w-full border-b backdrop-blur-xs">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
         <div className="flex items-center gap-8">
           <Link href="/protected" className="text-lg font-bold tracking-tight">
@@ -18,7 +18,7 @@ export function Header() {
               <Link
                 key={href}
                 href={href}
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground text-sm transition-colors"
               >
                 {label}
               </Link>

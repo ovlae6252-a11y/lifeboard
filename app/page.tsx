@@ -34,7 +34,7 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
       {/* 헤더 */}
-      <nav className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-sm">
+      <nav className="border-border/50 bg-background/80 sticky top-0 z-50 w-full border-b backdrop-blur-xs">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
           <Link href="/" className="text-lg font-bold tracking-tight">
             Lifeboard
@@ -55,21 +55,21 @@ export default function Home() {
           className="pointer-events-none absolute inset-0 opacity-[0.03] dark:opacity-[0.05]"
           style={{
             backgroundImage:
-              "radial-gradient(circle, hsl(var(--foreground)) 1px, transparent 1px)",
+              "radial-gradient(circle, var(--foreground) 1px, transparent 1px)",
             backgroundSize: "32px 32px",
           }}
         />
 
         <div className="relative z-10 mx-auto flex max-w-2xl flex-col items-center gap-8 text-center">
           {/* 뱃지 */}
-          <div className="animate-fade-in-up inline-flex items-center gap-2 rounded-full border border-border bg-secondary/50 px-4 py-1.5 text-sm text-muted-foreground">
-            <Sparkles className="h-3.5 w-3.5 text-accent" />
+          <div className="animate-fade-in-up border-border bg-secondary/50 text-muted-foreground inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm">
+            <Sparkles className="text-accent h-3.5 w-3.5" />
             AI 기반 뉴스 분석 대시보드
           </div>
 
           {/* 타이틀 */}
           <h1
-            className="animate-fade-in-up text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl"
+            className="animate-fade-in-up text-4xl leading-[1.1] font-bold tracking-tight sm:text-5xl lg:text-6xl"
             style={{ animationDelay: "100ms" }}
           >
             인생의 모든 데이터를
@@ -79,7 +79,7 @@ export default function Home() {
 
           {/* 설명 */}
           <p
-            className="animate-fade-in-up max-w-md text-lg leading-relaxed text-muted-foreground"
+            className="animate-fade-in-up text-muted-foreground max-w-md text-lg leading-relaxed"
             style={{ animationDelay: "200ms" }}
           >
             주요 뉴스를 자동으로 수집하고, AI가 핵심만 요약합니다.
@@ -103,20 +103,20 @@ export default function Home() {
       </section>
 
       {/* 기능 소개 */}
-      <section className="border-t border-border/50 bg-secondary/30">
+      <section className="border-border/50 bg-secondary/30 border-t">
         <div className="mx-auto max-w-6xl px-6 py-20">
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             {features.map(({ icon: Icon, title, description, delay }) => (
               <div
                 key={title}
-                className="animate-fade-in-up rounded-xl border border-border/50 bg-card p-6 transition-colors hover:border-border"
+                className="animate-fade-in-up border-border/50 bg-card hover:border-border rounded-xl border p-6 transition-colors"
                 style={{ animationDelay: delay }}
               >
-                <div className="mb-4 inline-flex rounded-lg bg-primary/10 p-2.5">
-                  <Icon className="h-5 w-5 text-primary" />
+                <div className="bg-primary/10 mb-4 inline-flex rounded-lg p-2.5">
+                  <Icon className="text-primary h-5 w-5" />
                 </div>
                 <h3 className="mb-2 font-semibold">{title}</h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">
+                <p className="text-muted-foreground text-sm leading-relaxed">
                   {description}
                 </p>
               </div>

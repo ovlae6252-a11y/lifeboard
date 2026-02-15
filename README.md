@@ -18,7 +18,7 @@ MVP 단계에서는 한국 주요 언론사 RSS 뉴스 수집, AI 기반 팩트 
 | 영역       | 기술                                                     |
 | ---------- | -------------------------------------------------------- |
 | 프레임워크 | Next.js 16 (App Router, Turbopack, Cache Components)     |
-| UI         | React 19, Tailwind CSS 3, shadcn/ui (new-york), Radix UI |
+| UI         | React 19, Tailwind CSS 4, shadcn/ui (new-york), Radix UI |
 | 백엔드     | Supabase (PostgreSQL, Auth, RLS, RPC, Realtime)          |
 | AI 요약    | Ollama (qwen2.5:14b, 로컬 LLM)                           |
 | 배포       | Vercel (Cron 작업 포함)                                  |

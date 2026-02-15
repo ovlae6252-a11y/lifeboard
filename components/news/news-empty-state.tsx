@@ -12,13 +12,13 @@ export function NewsEmptyState({ category }: NewsEmptyStateProps) {
   if (!category || category === "all") {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-24 text-center">
-        <Newspaper className="h-12 w-12 text-muted-foreground/40" />
+        <Newspaper className="text-muted-foreground/40 h-12 w-12" />
         <p className="text-lg font-semibold">아직 수집된 뉴스가 없습니다</p>
         <div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             뉴스는 하루 2회 자동으로 수집됩니다.
           </p>
-          <p className="text-xs text-muted-foreground/70">
+          <p className="text-muted-foreground/70 text-xs">
             (오전 8시, 오후 8시)
           </p>
         </div>
@@ -29,11 +29,11 @@ export function NewsEmptyState({ category }: NewsEmptyStateProps) {
   // 카테고리별 빈 상태
   return (
     <div className="flex flex-col items-center justify-center gap-2.5 py-16 text-center">
-      <FolderOpen className="h-10 w-10 text-muted-foreground/40" />
+      <FolderOpen className="text-muted-foreground/40 h-10 w-10" />
       <p className="text-base font-medium">
         {getCategoryLabel(category)} 뉴스가 아직 없습니다
       </p>
-      <p className="text-sm text-muted-foreground">
+      <p className="text-muted-foreground text-sm">
         다른 카테고리를 선택해 보세요
       </p>
     </div>

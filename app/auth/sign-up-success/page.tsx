@@ -21,7 +21,7 @@ export default function Page() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 회원가입이 정상적으로 완료되었습니다. 로그인하기 전에 이메일에서
                 계정 인증을 완료해주세요.
               </p>

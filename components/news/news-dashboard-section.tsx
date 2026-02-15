@@ -16,7 +16,7 @@ export async function NewsDashboardSection() {
         <h2 className="text-xl font-bold">최신 뉴스</h2>
         <Link
           href="/protected/news"
-          className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-primary"
+          className="text-muted-foreground hover:text-primary flex items-center gap-1 text-sm transition-colors"
         >
           더보기
           <ArrowRight className="h-4 w-4" />
