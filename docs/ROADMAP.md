@@ -313,19 +313,19 @@
 
 #### 마일스톤 4.1: 페이지네이션
 
-- [ ] 태스크 4.1.1: 페이지네이션 컴포넌트 구현
+- [x] 태스크 4.1.1: 페이지네이션 컴포넌트 구현
   - 상세: `components/news/news-pagination.tsx` 구현. 커서 기반 또는 오프셋 기반 페이지네이션. URL 쿼리 파라미터 `?page=` 와 동기화. 이전/다음 버튼. 페이지당 20개 뉴스 그룹 표시.
   - 관련 파일: `components/news/news-pagination.tsx`
 
-- [ ] 태스크 4.1.2: 뉴스 데이터 페칭 함수에 페이지네이션 적용
+- [x] 태스크 4.1.2: 뉴스 데이터 페칭 함수에 페이지네이션 적용
   - 상세: `getNewsGroups()` 함수에 `page`, `pageSize` 파라미터 추가. 전체 개수 조회 포함. Supabase `range()` 메서드 활용.
   - 관련 파일: `lib/news/queries.ts`
 
-- [ ] 태스크 4.1.3: 뉴스 목록 페이지에 페이지네이션 통합
+- [x] 태스크 4.1.3: 뉴스 목록 페이지에 페이지네이션 통합
   - 상세: `app/protected/news/page.tsx`에서 `searchParams`의 `page` 파라미터 처리. `NewsPagination` 컴포넌트 배치.
   - 관련 파일: `app/protected/news/page.tsx`
 
-- [ ] 태스크 4.1.4: Playwright MCP 테스트 - 페이지네이션
+- [x] 태스크 4.1.4: Playwright MCP 테스트 - 페이지네이션
   - 사전 조건: 태스크 4.1.3 완료, DB에 20개 이상 뉴스 그룹 존재
   - 검증 항목:
     1. `browser_navigate`로 `/protected/news` 접근 -> 첫 페이지 뉴스 표시 확인
@@ -336,15 +336,15 @@
 
 #### 마일스톤 4.2: 에러 및 빈 상태 처리
 
-- [ ] 태스크 4.2.1: 뉴스 빈 상태 컴포넌트 구현
+- [x] 태스크 4.2.1: 뉴스 빈 상태 컴포넌트 구현
   - 상세: `components/news/news-empty-state.tsx` 구현. 뉴스가 없을 때 표시할 안내 메시지. 카테고리별 빈 상태와 전체 빈 상태 구분.
   - 관련 파일: `components/news/news-empty-state.tsx`
 
-- [ ] 태스크 4.2.2: 에러 바운더리 및 에러 페이지 구현
+- [x] 태스크 4.2.2: 에러 바운더리 및 에러 페이지 구현
   - 상세: `app/protected/news/error.tsx` 에러 UI. `app/protected/news/loading.tsx` 로딩 UI (NewsSkeleton 활용). Next.js App Router의 에러/로딩 컨벤션 활용.
   - 관련 파일: `app/protected/news/error.tsx`, `app/protected/news/loading.tsx`
 
-- [ ] 태스크 4.2.3: Playwright MCP 테스트 - 빈 상태 및 로딩 처리
+- [x] 태스크 4.2.3: Playwright MCP 테스트 - 빈 상태 및 로딩 처리
   - 사전 조건: 태스크 4.2.2 완료
   - 검증 항목:
     1. `browser_navigate`로 뉴스가 없는 카테고리 접근 -> 빈 상태 메시지 표시 확인

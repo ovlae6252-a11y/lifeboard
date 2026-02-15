@@ -1,9 +1,13 @@
 import { Suspense } from "react";
 
 import { NewsCategoryTabs } from "@/components/news/news-category-tabs";
+import { NewsEmptyState } from "@/components/news/news-empty-state";
 import { NewsList } from "@/components/news/news-list";
+import { NewsPagination } from "@/components/news/news-pagination";
 import { NewsSkeleton } from "@/components/news/news-skeleton";
 import { getNewsGroups } from "@/lib/news/queries";
+
+const PAGE_SIZE = 20;
 
 export const metadata = {
   title: "뉴스 | Lifeboard",
@@ -13,22 +17,40 @@ export const metadata = {
 async function NewsContent({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string }>;
+  searchParams: Promise<{ category?: string; page?: string }>;
 }) {
   const params = await searchParams;
   const category = params.category;
+  const page = Math.max(1, Number(params.page) || 1);
+  const offset = (page - 1) * PAGE_SIZE;
 
-  const { groups } = await getNewsGroups({
+  const { groups, count } = await getNewsGroups({
     category: category && category !== "all" ? category : undefined,
+    limit: PAGE_SIZE,
+    offset,
   });
 
-  return <NewsList groups={groups} />;
+  // 빈 상태 처리
+  if (count === 0) {
+    return <NewsEmptyState category={category} />;
+  }
+
+  return (
+    <>
+      <NewsList groups={groups} />
+      <NewsPagination
+        currentPage={page}
+        totalCount={count}
+        pageSize={PAGE_SIZE}
+      />
+    </>
+  );
 }
 
 export default function NewsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string }>;
+  searchParams: Promise<{ category?: string; page?: string }>;
 }) {
   return (
     <div className="space-y-6">
@@ -45,7 +67,7 @@ export default function NewsPage({
         <NewsCategoryTabs />
       </Suspense>
 
-      {/* 뉴스 목록 (searchParams await + 데이터 페칭을 Suspense 내부에서 수행) */}
+      {/* 뉴스 목록 + 페이지네이션 (searchParams await + 데이터 페칭을 Suspense 내부에서 수행) */}
       <Suspense fallback={<NewsSkeleton />}>
         <NewsContent searchParams={searchParams} />
       </Suspense>
