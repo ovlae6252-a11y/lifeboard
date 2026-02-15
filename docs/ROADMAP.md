@@ -115,73 +115,73 @@
 
 #### 마일스톤 1.1: Supabase 데이터베이스 스키마 구축
 
-- [ ] 태스크 1.1.1: `news_sources` 테이블 생성 (Supabase Migration)
+- [x] 태스크 1.1.1: `news_sources` 테이블 생성 (Supabase Migration)
   - 상세: UUID PK, name(TEXT), feed_url(TEXT UNIQUE), category(TEXT), is_active(BOOLEAN DEFAULT true), last_fetched_at(TIMESTAMPTZ), created_at(TIMESTAMPTZ DEFAULT now()). RLS 정책: 인증 사용자 읽기 전용.
-  - 관련 파일: `supabase/migrations/YYYYMMDD_create_news_sources.sql`
+  - 관련 파일: `supabase/migrations/20260215000001_create_news_sources.sql`
 
-- [ ] 태스크 1.1.2: `news_article_groups` 테이블 생성
+- [x] 태스크 1.1.2: `news_article_groups` 테이블 생성
   - 상세: UUID PK, representative_article_id(UUID, nullable - 기사 삽입 후 갱신), category(TEXT), article_count(INTEGER DEFAULT 1), fact_summary(TEXT), is_summarized(BOOLEAN DEFAULT false), summarized_at(TIMESTAMPTZ), created_at(TIMESTAMPTZ DEFAULT now()). RLS: 인증 사용자 읽기 전용.
-  - 관련 파일: `supabase/migrations/YYYYMMDD_create_news_article_groups.sql`
+  - 관련 파일: `supabase/migrations/20260215000002_create_news_article_groups.sql`
 
-- [ ] 태스크 1.1.3: `news_articles` 테이블 생성
+- [x] 태스크 1.1.3: `news_articles` 테이블 생성
   - 상세: UUID PK, source_id(FK -> news_sources.id), guid(TEXT), title(TEXT), title_normalized(TEXT), description(TEXT), original_url(TEXT), author(TEXT), category(TEXT), published_at(TIMESTAMPTZ), image_url(TEXT), group_id(FK -> news_article_groups.id, nullable), created_at(TIMESTAMPTZ DEFAULT now()). UNIQUE(source_id, guid). RLS: 인증 사용자 읽기 전용. representative_article_id FK 연결.
-  - 관련 파일: `supabase/migrations/YYYYMMDD_create_news_articles.sql`
+  - 관련 파일: `supabase/migrations/20260215000003_create_news_articles.sql`
 
-- [ ] 태스크 1.1.4: `news_fetch_logs` 테이블 생성
+- [x] 태스크 1.1.4: `news_fetch_logs` 테이블 생성
   - 상세: UUID PK, source_id(FK -> news_sources.id), status(TEXT), articles_fetched(INTEGER), articles_new(INTEGER), error_message(TEXT), created_at(TIMESTAMPTZ DEFAULT now()). RLS: service_role만 접근 가능.
-  - 관련 파일: `supabase/migrations/YYYYMMDD_create_news_fetch_logs.sql`
+  - 관련 파일: `supabase/migrations/20260215000004_create_news_fetch_logs.sql`
 
-- [ ] 태스크 1.1.5: `summarize_jobs` 테이블 생성
+- [x] 태스크 1.1.5: `summarize_jobs` 테이블 생성
   - 상세: UUID PK, group_id(FK -> news_article_groups.id), status(TEXT DEFAULT 'pending'), error_message(TEXT), requested_by(TEXT DEFAULT 'system'), created_at(TIMESTAMPTZ DEFAULT now()), started_at(TIMESTAMPTZ), completed_at(TIMESTAMPTZ). RLS: 인증 사용자 읽기 + INSERT, UPDATE는 service_role만.
-  - 관련 파일: `supabase/migrations/YYYYMMDD_create_summarize_jobs.sql`
+  - 관련 파일: `supabase/migrations/20260215000005_create_summarize_jobs.sql`
 
-- [ ] 태스크 1.1.6: pg_trgm 확장 활성화 및 트라이그램 유사도 함수 생성
+- [x] 태스크 1.1.6: pg_trgm 확장 활성화 및 트라이그램 유사도 함수 생성
   - 상세: `CREATE EXTENSION IF NOT EXISTS pg_trgm;` 실행. `title_normalized` 컬럼에 GIN 인덱스 생성. 유사도 검색용 함수 작성 (similarity threshold 0.6).
-  - 관련 파일: `supabase/migrations/YYYYMMDD_enable_pg_trgm.sql`
+  - 관련 파일: `supabase/migrations/20260215000006_enable_pg_trgm_and_functions.sql`
 
-- [ ] 태스크 1.1.7: 초기 RSS 소스 데이터 시드
+- [x] 태스크 1.1.7: 초기 RSS 소스 데이터 시드
   - 상세: PRD에 정의된 12개 한국 주요 언론사 RSS 피드 URL을 `news_sources` 테이블에 INSERT. 카테고리별(politics, economy, society, culture, science, world) 매핑.
-  - 관련 파일: `supabase/seed.sql` 또는 `supabase/migrations/YYYYMMDD_seed_news_sources.sql`
+  - 관련 파일: `supabase/migrations/20260215000007_seed_news_sources.sql`
 
 #### 마일스톤 1.2: RSS 수집 API 구현 (F001)
 
-- [ ] 태스크 1.2.1: `rss-parser` 패키지 설치
+- [x] 태스크 1.2.1: `rss-parser` 패키지 설치
   - 상세: `npm install rss-parser` 및 `npm install -D @types/rss-parser` (타입이 별도인 경우).
   - 관련 파일: `package.json`
 
-- [ ] 태스크 1.2.2: 제목 정규화 유틸리티 함수 구현
+- [x] 태스크 1.2.2: 제목 정규화 유틸리티 함수 구현
   - 상세: `[속보]`, `[단독]`, `[화제]` 등 태그 제거, 특수문자 제거, 공백 정리, 소문자 변환 함수. 단위 테스트용 예시 포함.
   - 관련 파일: `lib/news/normalize-title.ts`
 
-- [ ] 태스크 1.2.3: RSS 피드 파싱 서비스 구현
+- [x] 태스크 1.2.3: RSS 피드 파싱 서비스 구현
   - 상세: `rss-parser`를 사용하여 단일 RSS 피드 URL에서 기사 목록을 가져오는 함수. 5초 타임아웃 설정. 파싱 결과를 `news_articles` 삽입 형태로 변환.
   - 관련 파일: `lib/news/rss-fetcher.ts`
 
-- [ ] 태스크 1.2.4: 뉴스 그룹핑 서비스 구현 (F002)
+- [x] 태스크 1.2.4: 뉴스 그룹핑 서비스 구현 (F002)
   - 상세: Supabase RPC를 활용하여 `title_normalized` 기반 트라이그램 유사도 0.6 이상인 기사를 같은 그룹으로 묶는 함수. 새 그룹 생성 시 대표 기사 자동 선정 (가장 먼저 수집된 기사). 기존 그룹에 추가 시 `article_count` 갱신.
-  - 관련 파일: `lib/news/grouping.ts`, `supabase/migrations/YYYYMMDD_grouping_function.sql`
+  - 관련 파일: `lib/news/grouping.ts`, `supabase/migrations/20260215000006_enable_pg_trgm_and_functions.sql`
 
-- [ ] 태스크 1.2.5: 수집 로그 기록 서비스 구현 (F011)
+- [x] 태스크 1.2.5: 수집 로그 기록 서비스 구현 (F011)
   - 상세: RSS 소스별 수집 결과(성공/실패, 수집 개수, 신규 개수, 에러 메시지)를 `news_fetch_logs` 테이블에 기록하는 함수. Supabase service_role 클라이언트 사용.
   - 관련 파일: `lib/news/fetch-logger.ts`
 
-- [ ] 태스크 1.2.6: 요약 작업 큐 생성 서비스 구현
+- [x] 태스크 1.2.6: 요약 작업 큐 생성 서비스 구현
   - 상세: 새 그룹 생성 시 `summarize_jobs` 테이블에 pending 작업을 INSERT하는 함수. `requested_by = 'system'`.
   - 관련 파일: `lib/news/summarize-queue.ts`
 
-- [ ] 태스크 1.2.7: RSS 수집 API Route 구현 (`/api/news/collect`)
-  - 상세: POST 핸들러. `CRON_SECRET` 헤더 검증. 활성화된 모든 RSS 소스를 병렬 fetch. 각 소스별로: RSS 파싱 -> 제목 정규화 -> DB INSERT (중복 스킵) -> 그룹핑 -> 요약 작업 생성 -> 로그 기록. 전체 결과 JSON 반환.
+- [x] 태스크 1.2.7: RSS 수집 API Route 구현 (`/api/news/collect`)
+  - 상세: GET/POST 핸들러. `CRON_SECRET` 헤더 검증. 활성화된 모든 RSS 소스를 병렬 fetch. 각 소스별로: RSS 파싱 -> 제목 정규화 -> DB INSERT (중복 스킵) -> 그룹핑 -> 요약 작업 생성 -> 로그 기록. 전체 결과 JSON 반환.
   - 관련 파일: `app/api/news/collect/route.ts`
 
-- [ ] 태스크 1.2.8: 환경 변수 설정 업데이트
+- [x] 태스크 1.2.8: 환경 변수 설정 업데이트
   - 상세: `.env.local`에 `CRON_SECRET` 추가. `.env.example` 파일에 모든 환경 변수 템플릿 문서화.
   - 관련 파일: `.env.example`, `CLAUDE.md` (환경 변수 섹션 업데이트)
 
-- [ ] 태스크 1.2.9: Vercel Cron 설정 파일 작성
+- [x] 태스크 1.2.9: Vercel Cron 설정 파일 작성
   - 상세: `vercel.json`에 Cron 설정 추가. 1시간마다 `/api/news/collect` 호출. `CRON_SECRET` 헤더 포함.
   - 관련 파일: `vercel.json`
 
-- [ ] 태스크 1.2.10: Playwright MCP 테스트 - RSS 수집 API
+- [x] 태스크 1.2.10: Playwright MCP 테스트 - RSS 수집 API
   - 사전 조건: 태스크 1.2.7 완료
   - 검증 항목:
     1. `browser_navigate`로 수동 API 호출 테스트 페이지 또는 curl 대체 확인
