@@ -3,11 +3,7 @@ import { Suspense } from "react";
 import { AuthButton } from "@/components/auth-button";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { MobileNav } from "./mobile-nav";
-
-const navLinks = [
-  { href: "/protected", label: "대시보드" },
-  { href: "/protected/news", label: "뉴스" },
-];
+import { navLinks } from "./nav-links";
 
 export function Header() {
   return (

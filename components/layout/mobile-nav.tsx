@@ -13,11 +13,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-
-const navLinks = [
-  { href: "/protected", label: "대시보드" },
-  { href: "/protected/news", label: "뉴스" },
-];
+import { navLinks } from "./nav-links";
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
