@@ -58,6 +58,12 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
   - `header.tsx` - Server Component. AuthButton(서버), ThemeSwitcher(클라이언트), MobileNav(클라이언트) 조합
   - `mobile-nav.tsx` - Client Component. Sheet 기반, 768px 이하
   - `footer.tsx` - Client Component (`new Date()` 사용)
+- `components/news/` - 뉴스 UI 컴포넌트
+  - `news-group-card.tsx` - Server Component. Card 기반 뉴스 그룹 카드 (팩트 요약 불릿, 원문 링크)
+  - `news-category-tabs.tsx` - Client Component. shadcn/ui Tabs 기반, URL 쿼리 파라미터 동기화
+  - `news-list.tsx` - Server Component. 반응형 그리드 (1열/2열) + 빈 상태 처리
+  - `news-skeleton.tsx` - 스켈레톤 로딩 (Suspense fallback)
+  - `news-dashboard-section.tsx` - async Server Component. 대시보드 최신 6개 뉴스
 - `components/` 루트 - 인증 관련 컴포넌트
   - `auth-button.tsx` - **Server Component**. `getClaims()`로 인증 상태 확인. 반드시 `<Suspense>` 안에서 사용
   - `login-form.tsx`, `sign-up-form.tsx` 등 - Client Component
@@ -67,6 +73,7 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
 - `getClaims()`, `cookies()` 등 비캐시 데이터 접근하는 서버 컴포넌트는 반드시 `<Suspense>` 경계 내에 배치
 - `new Date()` 등 동적 값을 사용하는 컴포넌트는 `"use client"` 또는 `<Suspense>` 경계 내에 배치
 - Footer 컴포넌트는 `<Suspense>`로 감싸서 사용 (protected layout, 홈 페이지 모두)
+- `searchParams` Promise는 반드시 `<Suspense>` 경계 내의 async 컴포넌트에서 await (페이지 최상위에서 await 금지)
 
 ### Next.js 16 주의사항
 
@@ -82,6 +89,14 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
 - `grouping.ts` - 유사 기사 그룹핑 (`find_similar_group` RPC, 유사도 0.6, 48시간 범위)
 - `fetch-logger.ts` - 수집 로그 기록
 - `summarize-queue.ts` - AI 요약 작업 큐 관리
+- `categories.ts` - 뉴스 카테고리 상수 및 getCategoryLabel 헬퍼
+- `queries.ts` - 프론트엔드용 데이터 페칭 함수 (getNewsGroups, getLatestNewsGroups, getNewsGroupArticles)
+
+### 유틸리티 함수
+
+`lib/utils/`에 공통 유틸리티:
+- `format-time.ts` - 상대 시간 표시 (formatRelativeTime: "방금 전", "N분 전", "어제" 등)
+- `parse-facts.ts` - AI 팩트 요약 텍스트를 배열로 파싱 (parseFacts)
 
 수집 흐름: Vercel Cron (매시 정각) → `/api/news/collect` → RSS 파싱 → 중복 필터링 → DB INSERT → 그룹핑 → 요약 큐
 

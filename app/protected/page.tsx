@@ -1,6 +1,9 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { Suspense } from "react";
+
+import { NewsDashboardSection } from "@/components/news/news-dashboard-section";
+import { NewsSkeleton } from "@/components/news/news-skeleton";
+import { createClient } from "@/lib/supabase/server";
 
 async function DashboardContent() {
   const supabase = await createClient();
@@ -11,7 +14,7 @@ async function DashboardContent() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="space-y-12">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">대시보드</h1>
         <p className="mt-1 text-muted-foreground">
@@ -19,12 +22,10 @@ async function DashboardContent() {
         </p>
       </div>
 
-      {/* 향후 뉴스 대시보드 섹션이 추가될 영역 */}
-      <div className="rounded-xl border border-dashed border-border p-12 text-center">
-        <p className="text-sm text-muted-foreground">
-          뉴스 대시보드가 곧 이곳에 표시됩니다.
-        </p>
-      </div>
+      {/* 최신 뉴스 섹션 */}
+      <Suspense fallback={<NewsSkeleton count={6} />}>
+        <NewsDashboardSection />
+      </Suspense>
     </div>
   );
 }

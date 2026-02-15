@@ -224,29 +224,29 @@
 
 #### 마일스톤 3.1: Supabase 타입 생성 및 데이터 페칭 레이어
 
-- [ ] 태스크 3.1.1: Supabase 타입 생성
+- [x] 태스크 3.1.1: Supabase 타입 생성
   - 상세: `npx supabase gen types typescript` 명령으로 DB 스키마 기반 TypeScript 타입 생성. 생성된 타입 파일을 프로젝트에 포함.
   - 관련 파일: `lib/supabase/database.types.ts`
 
-- [ ] 태스크 3.1.2: 뉴스 데이터 페칭 함수 구현
+- [x] 태스크 3.1.2: 뉴스 데이터 페칭 함수 구현
   - 상세: Server Component용 데이터 페칭 함수들. `getNewsGroups(category?: string, limit?: number)` - 뉴스 그룹 목록 조회 (대표 기사 정보 포함, is_summarized 기준 필터 가능). `getNewsGroupArticles(groupId: string)` - 그룹 내 기사 목록 조회. `getLatestNewsGroups(limit: number)` - 대시보드용 최신 뉴스 그룹 조회. Supabase Server Client 사용.
   - 관련 파일: `lib/news/queries.ts`
 
 #### 마일스톤 3.2: 뉴스 그룹 카드 컴포넌트 (F005)
 
-- [ ] 태스크 3.2.1: shadcn/ui 추가 컴포넌트 설치
+- [x] 태스크 3.2.1: shadcn/ui 추가 컴포넌트 설치
   - 상세: `npx shadcn@latest add tabs skeleton separator scroll-area` 실행. 뉴스 UI에 필요한 shadcn/ui 컴포넌트 추가.
   - 관련 파일: `components/ui/tabs.tsx`, `components/ui/skeleton.tsx`, `components/ui/separator.tsx`, `components/ui/scroll-area.tsx`
 
-- [ ] 태스크 3.2.2: 뉴스 그룹 카드 컴포넌트 구현
+- [x] 태스크 3.2.2: 뉴스 그룹 카드 컴포넌트 구현
   - 상세: `components/news/news-group-card.tsx` 구현. shadcn/ui `Card` 기반. 표시 항목: 대표 기사 제목, AI 팩트 요약 (불릿 포인트, `fact_summary` 파싱), 그룹 내 기사 개수 배지, 카테고리 배지, 발행시간 (상대 시간 표시), 원문 링크 목록 (언론사명 + 링크). 요약 미완료 시 원본 description으로 임시 표시 또는 "요약 처리 중" 표시.
   - 관련 파일: `components/news/news-group-card.tsx`
 
-- [ ] 태스크 3.2.3: 뉴스 스켈레톤 로딩 컴포넌트 구현
+- [x] 태스크 3.2.3: 뉴스 스켈레톤 로딩 컴포넌트 구현
   - 상세: `components/news/news-skeleton.tsx` 구현. shadcn/ui `Skeleton` 기반. 뉴스 그룹 카드의 로딩 상태 표시. Suspense fallback으로 사용.
   - 관련 파일: `components/news/news-skeleton.tsx`
 
-- [ ] 태스크 3.2.4: 상대 시간 표시 유틸리티 구현
+- [x] 태스크 3.2.4: 상대 시간 표시 유틸리티 구현
   - 상세: `published_at`을 "3시간 전", "어제", "2일 전" 등으로 변환하는 함수. 외부 라이브러리 없이 구현하거나 가벼운 라이브러리 사용.
   - 관련 파일: `lib/utils/format-time.ts`
 
@@ -261,15 +261,15 @@
 
 #### 마일스톤 3.3: 카테고리 필터 (F004)
 
-- [ ] 태스크 3.3.1: 카테고리 탭 컴포넌트 구현
+- [x] 태스크 3.3.1: 카테고리 탭 컴포넌트 구현
   - 상세: `components/news/news-category-tabs.tsx` 구현. shadcn/ui `Tabs` 기반. 카테고리 목록: 전체, 정치(politics), 경제(economy), 사회(society), 생활/문화(culture), IT/과학(science), 세계(world). URL 쿼리 파라미터 `?category=` 와 동기화. 선택된 탭 상태 유지.
   - 관련 파일: `components/news/news-category-tabs.tsx`
 
-- [ ] 태스크 3.3.2: 뉴스 목록 컴포넌트 구현
+- [x] 태스크 3.3.2: 뉴스 목록 컴포넌트 구현
   - 상세: `components/news/news-list.tsx` 구현. 뉴스 그룹 카드 그리드. 반응형: 모바일 1열, 태블릿/데스크톱 2열. 데이터 없을 때 빈 상태 메시지 표시.
   - 관련 파일: `components/news/news-list.tsx`
 
-- [ ] 태스크 3.3.3: 뉴스 목록 페이지 구현 (`/protected/news`)
+- [x] 태스크 3.3.3: 뉴스 목록 페이지 구현 (`/protected/news`)
   - 상세: `app/protected/news/page.tsx` 구현. Server Component. `searchParams`에서 `category` 파라미터 추출. `getNewsGroups(category)` 호출. `NewsCategoryTabs` + `NewsList` 조합. `Suspense` + `NewsSkeleton` fallback 적용.
   - 관련 파일: `app/protected/news/page.tsx`
 
@@ -286,11 +286,11 @@
 
 #### 마일스톤 3.4: 뉴스 대시보드 섹션 (F006)
 
-- [ ] 태스크 3.4.1: 대시보드 뉴스 섹션 컴포넌트 구현
+- [x] 태스크 3.4.1: 대시보드 뉴스 섹션 컴포넌트 구현
   - 상세: `components/news/news-dashboard-section.tsx` 구현. 섹션 제목 ("최신 뉴스"), 최신 6개 뉴스 그룹 카드 그리드 (반응형 1열/2열), "더보기" 버튼 (`/protected/news` 링크).
   - 관련 파일: `components/news/news-dashboard-section.tsx`
 
-- [ ] 태스크 3.4.2: 대시보드 메인 페이지 개편 (`/protected`)
+- [x] 태스크 3.4.2: 대시보드 메인 페이지 개편 (`/protected`)
   - 상세: `app/protected/page.tsx`에서 Starter Kit 튜토리얼 콘텐츠 제거. `NewsDashboardSection` 컴포넌트 배치. Server Component로 `getLatestNewsGroups(6)` 호출. `Suspense` + 스켈레톤 fallback 적용. 향후 다른 라이프 데이터 섹션 추가를 위한 구조 마련 (섹션 간 간격 등).
   - 관련 파일: `app/protected/page.tsx`
 
