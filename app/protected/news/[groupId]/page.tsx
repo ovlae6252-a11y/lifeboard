@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
+import { BookmarkButton } from "@/components/news/bookmark-button";
 import { FactSummaryCard } from "@/components/news/fact-summary-card";
 import { RelatedArticlesList } from "@/components/news/related-articles-list";
 import { RelativeTime } from "@/components/news/relative-time";
@@ -11,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCategoryLabel } from "@/lib/news/categories";
 import { getNewsGroupDetail, getRelatedArticles } from "@/lib/news/queries";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata = {
   title: "뉴스 상세 | Lifeboard",
@@ -38,6 +40,24 @@ async function NewsDetailContent({
 
   // 관련 기사 조회
   const articles = await getRelatedArticles(groupId);
+
+  // 사용자 북마크 상태 확인
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let isBookmarked = false;
+  if (user) {
+    const { data: bookmarkData } = await supabase
+      .from("user_bookmarks")
+      .select("group_id")
+      .eq("user_id", user.id)
+      .eq("group_id", groupId)
+      .maybeSingle();
+
+    isBookmarked = !!bookmarkData;
+  }
 
   const title = group.representative_article?.title ?? "제목 없음";
   const publishedAt =
@@ -68,6 +88,12 @@ async function NewsDetailContent({
             {group.article_count}개 기사
           </Badge>
           <RelativeTime dateTime={publishedAt} />
+          <BookmarkButton
+            groupId={groupId}
+            isBookmarked={isBookmarked}
+            size="sm"
+            variant="outline"
+          />
         </div>
 
         <h1 className="font-serif text-2xl leading-tight font-bold md:text-3xl">

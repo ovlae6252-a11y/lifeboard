@@ -13,6 +13,7 @@ export const NEWS_CATEGORIES: NewsCategory[] = [
   { value: "culture", label: "생활/문화" },
   { value: "science", label: "IT/과학" },
   { value: "world", label: "세계" },
+  { value: "bookmarks", label: "북마크" },
 ];
 
 /**
