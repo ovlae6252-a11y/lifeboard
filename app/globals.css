@@ -44,9 +44,9 @@
 }
 
 @theme inline {
-  --font-sans: Libre Baskerville, serif;
-  --font-mono: IBM Plex Mono, monospace;
-  --font-serif: Lora, serif;
+  --font-sans: var(--font-libre-baskerville), var(--font-noto-sans-kr), serif;
+  --font-mono: var(--font-ibm-plex-mono), monospace;
+  --font-serif: var(--font-lora), serif;
   --radius: 0.25rem;
   --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
   --tracking-tight: calc(var(--tracking-normal) - 0.025em);
@@ -172,9 +172,6 @@
     2px 8px 10px -1px hsl(28 13% 20% / 0.12);
   --shadow-2xl: 2px 3px 5px 0px hsl(28 13% 20% / 0.3);
   --tracking-normal: 0em;
-  --font-sans: Libre Baskerville, serif;
-  --font-serif: Lora, serif;
-  --font-mono: IBM Plex Mono, monospace;
 }
 
 .dark {
@@ -211,9 +208,6 @@
   --sidebar-accent-foreground: oklch(0.9239 0.019 83.0636);
   --sidebar-border: oklch(0.3795 0.0181 57.128);
   --sidebar-ring: oklch(0.7264 0.0581 66.6967);
-  --font-sans: Libre Baskerville, serif;
-  --font-serif: Lora, serif;
-  --font-mono: IBM Plex Mono, monospace;
   --shadow-color: hsl(28 13% 20%);
   --shadow-opacity: 0.12;
   --shadow-blur: 5px;
