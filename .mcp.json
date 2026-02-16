@@ -19,7 +19,7 @@
       "env": {
         "DATA_DIR": "C:/ovlae/workspace/lifeboard/shrimp_data",
         "TEMPLATES_USE": "en",
-        "ENABLE_GUI": "false"
+        "ENABLE_GUI": "true"
       }
     }
   }
