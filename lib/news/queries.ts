@@ -268,3 +268,98 @@ export async function getRelatedArticles(groupId: string) {
 
   return data ?? [];
 }
+
+/**
+ * 뉴스 그룹을 검색한다 (제목, 팩트 요약 기반).
+ * use cache로 캐싱 — 검색 쿼리별로 캐시 태그 생성.
+ */
+export async function searchNewsGroups(
+  query: string,
+  category?: string,
+  page: number = 1,
+  limit: number = 20,
+): Promise<NewsGroupsResult> {
+  "use cache";
+  cacheLife({ stale: 60, revalidate: 300, expire: 3600 });
+  cacheTag("news-search", query, category ?? "all");
+
+  const supabase = createAdminClient();
+  const offset = (page - 1) * limit;
+
+  const { data, error, count } = await supabase.rpc("search_news_groups", {
+    p_query: query,
+    p_category: category,
+    p_limit: limit,
+    p_offset: offset,
+  });
+
+  if (error) {
+    console.error("뉴스 검색 실패:", error.message);
+    return { groups: [], count: 0 };
+  }
+
+  const rawGroups = (data ?? []) as NewsGroupRaw[];
+  if (rawGroups.length === 0) {
+    return { groups: [], count: count ?? 0 };
+  }
+
+  // RPC로 그룹별 상위 기사 조회
+  const groupIds = rawGroups.map((g) => g.id);
+  const { data: articleRows, error: rpcError } = await supabase.rpc(
+    "get_top_articles_for_groups",
+    { p_group_ids: groupIds, p_limit_per_group: 4 },
+  );
+
+  if (rpcError) {
+    console.error("검색 결과 기사 RPC 조회 실패:", rpcError.message);
+    return {
+      groups: rawGroups.map((g) => ({ ...g, articles: [] })),
+      count: count ?? 0,
+    };
+  }
+
+  return {
+    groups: attachArticlesToGroups(rawGroups, articleRows ?? []),
+    count: count ?? 0,
+  };
+}
+
+/**
+ * 사용자의 북마크된 뉴스 그룹을 조회한다.
+ * use cache로 캐싱 — 사용자별로 캐시 태그 생성.
+ */
+export async function getUserBookmarkedGroups(
+  userId: string,
+  page: number = 1,
+  limit: number = 20,
+): Promise<NewsGroupsResult> {
+  // TODO: "use cache" 캐싱 활성화 (현재 revalidateTag 호환성 이슈로 비활성화)
+  // "use cache";
+  // cacheLife({ stale: 300, revalidate: 3600, expire: 86400 });
+  // cacheTag("user-bookmarks", userId);
+
+  const supabase = createAdminClient();
+  const offset = (page - 1) * limit;
+
+  // 전체 북마크 개수 조회
+  const { count: totalCount } = await supabase
+    .from("user_bookmarks")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId);
+
+  // 북마크된 뉴스 그룹 조회 (페이지네이션 적용)
+  const { data, error } = await supabase.rpc("get_user_bookmarks", {
+    p_user_id: userId,
+    p_limit: limit,
+    p_offset: offset,
+  });
+
+  if (error) {
+    console.error("북마크 조회 실패:", error.message);
+    return { groups: [], count: 0 };
+  }
+
+  // get_user_bookmarks RPC는 이미 articles를 JSONB로 포함하여 반환
+  const groups = (data ?? []) as NewsGroupWithArticles[];
+  return { groups, count: totalCount ?? 0 };
+}
