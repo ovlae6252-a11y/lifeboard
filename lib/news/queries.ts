@@ -208,3 +208,61 @@ export async function getNewsGroupArticles(groupId: string) {
 
   return data ?? [];
 }
+
+/**
+ * 뉴스 그룹 상세 정보를 조회한다 (상세 페이지용).
+ * use cache로 캐싱 — 수집 API에서 updateTag('news-groups')로 무효화.
+ */
+export async function getNewsGroupDetail(groupId: string) {
+  "use cache";
+  cacheLife({ stale: 300, revalidate: 3600, expire: 86400 });
+  cacheTag("news-groups");
+
+  const supabase = createAdminClient();
+
+  const { data, error } = await supabase
+    .from("news_article_groups")
+    .select(NEWS_GROUP_SELECT)
+    .eq("id", groupId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("뉴스 그룹 상세 조회 실패:", error.message);
+    return null;
+  }
+
+  return data as NewsGroupRaw | null;
+}
+
+/**
+ * 특정 그룹의 관련 기사 목록을 조회한다 (상세 페이지용, 최신순).
+ * use cache로 캐싱 — 수집 API에서 updateTag('news-group-articles')로 무효화.
+ */
+export async function getRelatedArticles(groupId: string) {
+  "use cache";
+  cacheLife({ stale: 300, revalidate: 3600, expire: 86400 });
+  cacheTag("news-group-articles");
+
+  const supabase = createAdminClient();
+
+  const { data, error } = await supabase
+    .from("news_articles")
+    .select(
+      `
+      id,
+      title,
+      original_url,
+      published_at,
+      source:news_sources (name)
+    `,
+    )
+    .eq("group_id", groupId)
+    .order("published_at", { ascending: false });
+
+  if (error) {
+    console.error("관련 기사 조회 실패:", error.message);
+    return [];
+  }
+
+  return data ?? [];
+}
