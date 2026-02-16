@@ -232,6 +232,29 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      batch_group_articles: {
+        Args: {
+          p_articles: Json
+          p_similarity_threshold?: number
+          p_hours_range?: number
+        }
+        Returns: {
+          article_id: string
+          group_id: string
+          is_new_group: boolean
+        }[]
+      }
+      cleanup_old_records: {
+        Args: Record<string, never>
+        Returns: Json
+      }
+      enqueue_summarize_jobs: {
+        Args: {
+          p_group_ids: string[]
+          p_requested_by?: string
+        }
+        Returns: number
+      }
       find_similar_group: {
         Args: {
           p_category: string
@@ -242,6 +265,19 @@ export type Database = {
         Returns: {
           group_id: string
           similarity: number
+        }[]
+      }
+      get_top_articles_for_groups: {
+        Args: {
+          p_group_ids: string[]
+          p_limit_per_group?: number
+        }
+        Returns: {
+          group_id: string
+          id: string
+          title: string
+          original_url: string
+          source_name: string | null
         }[]
       }
       increment_article_count: {
