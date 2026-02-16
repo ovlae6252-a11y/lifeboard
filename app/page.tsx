@@ -1,7 +1,7 @@
 import { AuthButton } from "@/components/auth-button";
 import { Footer } from "@/components/layout/footer";
 import { ThemeSwitcher } from "@/components/theme-switcher";
-import { Button } from "@/components/ui/button";
+import { HomeCTAButtons } from "@/components/home-cta-buttons";
 import { Newspaper, Sparkles, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -91,17 +91,18 @@ export default function Home() {
           </p>
 
           {/* CTA 버튼 */}
-          <div
-            className="animate-fade-in-up flex gap-3"
-            style={{ animationDelay: "300ms" }}
+          <Suspense
+            fallback={
+              <div
+                className="animate-fade-in-up"
+                style={{ animationDelay: "300ms" }}
+              >
+                <div className="bg-muted h-10 w-32 animate-pulse rounded-md" />
+              </div>
+            }
           >
-            <Button asChild size="lg" className="px-8">
-              <Link href="/auth/sign-up">시작하기</Link>
-            </Button>
-            <Button asChild variant="outline" size="lg">
-              <Link href="/auth/login">로그인</Link>
-            </Button>
-          </div>
+            <HomeCTAButtons />
+          </Suspense>
         </div>
       </section>
 
