@@ -51,7 +51,7 @@
 
 ### v1.1 아키텍처 확장
 
-- **소셜 로그인 흐름** (v1.1b): Supabase Auth + Google/Kakao/Apple OAuth 프로바이더
+- **소셜 로그인 흐름** (v1.1b): Supabase Auth + Google/Kakao OAuth 프로바이더
 - **콘텐츠 필터링** (v1.1a): RSS 수집 파이프라인에 키워드 블랙리스트/화이트리스트 필터 추가
 - **관리자 시스템** (v1.1c~d): `/admin/*` 라우트, 관리자 전용 API Route, 관리자 사이드바 레이아웃
 - **날씨 데이터** (v1.1d): OpenWeatherMap API -> `use cache` 캐싱 -> 대시보드 위젯
@@ -190,53 +190,53 @@
 
 ### v1.1b: 소셜 로그인 + 검색/북마크/설정 (예상 5~7일)
 
-**목표:** 인증 시스템을 소셜 로그인(Google, Kakao, Apple)으로 전환하고, 뉴스 검색, 북마크, 사용자 설정 페이지, 뉴스 공유 기능을 구현한다.
+**목표:** 인증 시스템을 소셜 로그인(Google, Kakao)으로 전환하고, 뉴스 검색, 북마크, 사용자 설정 페이지, 뉴스 공유 기능을 구현한다.
 **완료 기준:** 사용자가 소셜 계정으로 로그인하고, 뉴스를 검색/북마크/공유하며, 설정 페이지에서 프로필과 선호 카테고리를 관리할 수 있다.
 
 #### 마일스톤 1b.1: 소셜 로그인 (F100)
 
 > 소셜 로그인 전환은 다른 사용자별 기능(북마크 F102, 설정 F103)의 선행 조건이다.
 
-- [ ] 태스크 1b.1.1: Supabase 대시보드에 OAuth 프로바이더 설정
-  - 상세: Supabase Dashboard > Authentication > Providers에서 Google, Kakao, Apple 프로바이더 활성화. 각 프로바이더별 Client ID/Secret 입력. Redirect URL(`https://<project-ref>.supabase.co/auth/v1/callback`) 확인 및 각 OAuth 콘솔에 등록.
+- [x] 태스크 1b.1.1: Supabase 대시보드에 OAuth 프로바이더 설정
+  - 상세: Supabase Dashboard > Authentication > Providers에서 Google, Kakao 프로바이더 활성화. 각 프로바이더별 Client ID/Secret 입력. Redirect URL(`https://<project-ref>.supabase.co/auth/v1/callback`) 확인 및 각 OAuth 콘솔에 등록.
   - 관련 파일: 없음 (Supabase 대시보드 설정)
 
-- [ ] 태스크 1b.1.2: OAuth 콜백 Route Handler 구현 (`/auth/callback`)
+- [x] 태스크 1b.1.2: OAuth 콜백 Route Handler 구현 (`/auth/callback`)
   - 상세: `app/auth/callback/route.ts` 신규. GET 핸들러. URL의 `code` 파라미터로 `supabase.auth.exchangeCodeForSession()` 호출. 성공 시 `/protected`로 리다이렉트. 실패 시 `/auth/error`로 리다이렉트 (에러 메시지 포함). Open Redirect 방지를 위해 `next` 파라미터는 상대 경로만 허용.
   - 관련 파일: `app/auth/callback/route.ts`
 
-- [ ] 태스크 1b.1.3: 소셜 로그인 버튼 컴포넌트 구현
-  - 상세: `components/social-login-buttons.tsx` 신규. Client Component. Google, Kakao, Apple 로그인 버튼 3개. 각 프로바이더 공식 브랜드 가이드라인 준수 (색상, 로고, 텍스트). `supabase.auth.signInWithOAuth({ provider, options: { redirectTo: '/auth/callback' } })` 호출. 로딩 상태 표시.
+- [x] 태스크 1b.1.3: 소셜 로그인 버튼 컴포넌트 구현
+  - 상세: `components/social-login-buttons.tsx` 신규. Client Component. Google, Kakao 로그인 버튼 2개. 각 프로바이더 공식 브랜드 가이드라인 준수 (색상, 로고, 텍스트). `supabase.auth.signInWithOAuth({ provider, options: { redirectTo: '/auth/callback' } })` 호출. 로딩 상태 표시.
   - 관련 파일: `components/social-login-buttons.tsx`
 
-- [ ] 태스크 1b.1.4: 로그인 페이지 변경 (`/auth/login`)
+- [x] 태스크 1b.1.4: 로그인 페이지 변경 (`/auth/login`)
   - 상세: `app/auth/login/page.tsx` 수정. 이메일/비밀번호 폼 제거, `SocialLoginButtons` 컴포넌트만 표시. 중앙 정렬 카드 내 Lifeboard 로고 + "소셜 계정으로 로그인" 안내 + 버튼 3개 세로 배치. 에러 메시지 표시 (URL 파라미터 기반).
   - 관련 파일: `app/auth/login/page.tsx`
 
-- [ ] 태스크 1b.1.5: `proxy.ts`에 `/auth/callback` 경로 예외 추가
+- [x] 태스크 1b.1.5: `proxy.ts`에 `/auth/callback` 경로 예외 추가
   - 상세: `lib/supabase/proxy.ts`의 미인증 리다이렉트 예외 경로에 `/auth/callback` 추가. 기존 `/auth/*` 패턴에 이미 포함될 수 있으나 명시적으로 확인.
   - 관련 파일: `lib/supabase/proxy.ts`
 
-- [ ] 태스크 1b.1.6: `auth-button.tsx` 소셜 프로필 표시로 변경
+- [x] 태스크 1b.1.6: `auth-button.tsx` 소셜 프로필 표시로 변경
   - 상세: `components/auth-button.tsx` 수정. 이메일 대신 `raw_user_meta_data`에서 사용자 이름 표시. 프로필 이미지(아바타) 표시 (Google/Kakao 제공 시). 프로필 이미지 없는 경우 이니셜 아바타 fallback.
   - 관련 파일: `components/auth-button.tsx`
 
-- [ ] 태스크 1b.1.7: 홈 페이지 CTA 버튼 업데이트
+- [x] 태스크 1b.1.7: 홈 페이지 CTA 버튼 업데이트
   - 상세: `app/page.tsx`에서 회원가입 버튼 제거. "시작하기" 또는 "로그인" 버튼으로 통합하여 `/auth/login`으로 이동.
   - 관련 파일: `app/page.tsx`
 
-- [ ] 태스크 1b.1.8: 이메일/비밀번호 관련 페이지 및 컴포넌트 제거
+- [x] 태스크 1b.1.8: 이메일/비밀번호 관련 페이지 및 컴포넌트 제거
   - 상세: 제거 대상 페이지: `app/auth/sign-up/`, `app/auth/forgot-password/`, `app/auth/update-password/`, `app/auth/sign-up-success/`, `app/auth/confirm/`. 제거 대상 컴포넌트: `components/login-form.tsx`, `components/sign-up-form.tsx`, `components/forgot-password-form.tsx`, `components/update-password-form.tsx`. 다른 파일에서 import 참조 정리.
   - 관련 파일: 위 파일들 전체 삭제
 
-- [ ] 태스크 1b.1.9: E2E 테스트 인증 방식 전환
+- [x] 태스크 1b.1.9: E2E 테스트 인증 방식 전환
   - 상세: 기존 이메일/비밀번호 테스트 계정 대신 Supabase `auth.admin.createUser()` + 직접 세션 주입 방식으로 전환. 환경변수 `ALLOW_EMAIL_AUTH=true` 플래그로 개발/테스트 환경에서 이메일 로그인 유지 가능하게 설정 (선택).
   - 관련 파일: `.env.local`, `.env.example`
 
-- [ ] 태스크 1b.1.10: Playwright MCP 테스트 - 소셜 로그인 흐름
+- [x] 태스크 1b.1.10: Playwright MCP 테스트 - 소셜 로그인 흐름
   - 사전 조건: 태스크 1b.1.1 ~ 1b.1.9 완료
   - 검증 항목:
-    1. `browser_navigate`로 `/auth/login` 접근 -> 소셜 로그인 버튼 3개(Google, Kakao, Apple) 존재 확인
+    1. `browser_navigate`로 `/auth/login` 접근 -> 소셜 로그인 버튼 2개(Google, Kakao) 존재 확인
     2. `browser_snapshot`으로 이메일/비밀번호 폼이 없는지 확인
     3. `browser_snapshot`으로 "소셜 계정으로 로그인" 안내 텍스트 확인
     4. `browser_navigate`로 `/auth/sign-up` 접근 -> 404 또는 리다이렉트 확인 (제거됨)
@@ -246,37 +246,37 @@
 
 #### 마일스톤 1b.2: DB 스키마 변경 - 사용자 설정 + 북마크 (F102, F103)
 
-- [ ] 태스크 1b.2.1: `user_preferences` 테이블 생성 (F103)
+- [x] 태스크 1b.2.1: `user_preferences` 테이블 생성 (F103)
   - 상세: `user_id UUID PK REFERENCES auth.users(id)`, `preferred_categories JSONB DEFAULT '[]'`, `dashboard_config JSONB DEFAULT '{"widgets": ["news", "weather"], "order": ["news", "weather"]}'`, `email_digest_enabled BOOLEAN DEFAULT false`, `weather_location TEXT DEFAULT 'seoul'`, `updated_at TIMESTAMPTZ DEFAULT now()`. RLS: 본인 데이터만 SELECT, INSERT, UPDATE. `ON DELETE CASCADE` (사용자 삭제 시).
   - 관련 파일: `supabase/migrations/[timestamp]_create_user_preferences.sql`
 
-- [ ] 태스크 1b.2.2: `user_bookmarks` 테이블 생성 (F102)
+- [x] 태스크 1b.2.2: `user_bookmarks` 테이블 생성 (F102)
   - 상세: `id UUID PK DEFAULT gen_random_uuid()`, `user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE`, `group_id UUID REFERENCES news_article_groups(id) ON DELETE CASCADE`, `created_at TIMESTAMPTZ DEFAULT now()`, `UNIQUE(user_id, group_id)`. RLS: 본인 데이터만 SELECT, INSERT, DELETE.
   - 관련 파일: `supabase/migrations/[timestamp]_create_user_bookmarks.sql`
 
-- [ ] 태스크 1b.2.3: `database.types.ts` 재생성
+- [x] 태스크 1b.2.3: `database.types.ts` 재생성
   - 상세: 새 테이블 생성 후 타입 파일 갱신.
   - 관련 파일: `lib/supabase/database.types.ts`
 
 #### 마일스톤 1b.3: 뉴스 검색 (F101)
 
-- [ ] 태스크 1b.3.1: 검색용 pg_trgm GIN 인덱스 추가
+- [x] 태스크 1b.3.1: 검색용 pg_trgm GIN 인덱스 추가
   - 상세: `news_article_groups.fact_summary`와 `news_articles.title`에 `pg_trgm` GIN 인덱스 추가. `CREATE INDEX idx_fact_summary_trgm ON news_article_groups USING gin (fact_summary gin_trgm_ops);` 등. 기존 `title_normalized` GIN 인덱스는 유지.
   - 관련 파일: `supabase/migrations/[timestamp]_add_search_indexes.sql`
 
-- [ ] 태스크 1b.3.2: 뉴스 검색 쿼리 함수 구현
+- [x] 태스크 1b.3.2: 뉴스 검색 쿼리 함수 구현
   - 상세: `lib/news/queries.ts`에 `searchNewsGroups(query: string, category?: string, page?: number, limit?: number)` 함수 추가. `pg_trgm` ILIKE 검색. `fact_summary ILIKE '%query%' OR title ILIKE '%query%'` (대표 기사 제목). 카테고리 필터 병행 가능. 페이지네이션 지원.
   - 관련 파일: `lib/news/queries.ts`
 
-- [ ] 태스크 1b.3.3: 검색바 컴포넌트 구현
+- [x] 태스크 1b.3.3: 검색바 컴포넌트 구현
   - 상세: `components/news/news-search-bar.tsx` 신규. Client Component. 입력 필드 + 검색 버튼 (lucide `Search` 아이콘). 엔터 키 또는 버튼 클릭으로 검색 실행. URL 쿼리 파라미터 `?q=검색어`와 동기화. `useRouter().push()`로 URL 업데이트. 디바운스 없음 (엔터/클릭 시에만 검색). 검색어 초기화(X 버튼) 지원.
   - 관련 파일: `components/news/news-search-bar.tsx`
 
-- [ ] 태스크 1b.3.4: 뉴스 목록 페이지에 검색 기능 통합
+- [x] 태스크 1b.3.4: 뉴스 목록 페이지에 검색 기능 통합
   - 상세: `app/protected/news/page.tsx` 수정. `searchParams`에서 `q` 파라미터 추출. `q`가 있으면 `searchNewsGroups(q, category)` 호출, 없으면 기존 `getNewsGroups()` 호출. `NewsSearchBar` 컴포넌트를 카테고리 탭 상단에 배치. 검색 결과 없을 때 "검색 결과가 없습니다" 빈 상태 메시지.
   - 관련 파일: `app/protected/news/page.tsx`
 
-- [ ] 태스크 1b.3.5: Playwright MCP 테스트 - 뉴스 검색
+- [x] 태스크 1b.3.5: Playwright MCP 테스트 - 뉴스 검색
   - 사전 조건: 태스크 1b.3.4 완료
   - 검증 항목:
     1. `browser_navigate`로 `/protected/news` 접근 -> 검색바 존재 확인
@@ -289,27 +289,27 @@
 
 #### 마일스톤 1b.4: 뉴스 북마크 (F102)
 
-- [ ] 태스크 1b.4.1: 북마크 API Route 구현
+- [x] 태스크 1b.4.1: 북마크 API Route 구현
   - 상세: `app/api/news/bookmarks/route.ts` 신규. GET: 현재 사용자의 북마크 목록 조회 (group_id 목록). POST: 북마크 추가 (group_id). INSERT 전 COUNT 체크 (사용자당 최대 100개 제한). DELETE: 북마크 해제 (group_id). 모두 인증 필요 (`getClaims()` 검증).
   - 관련 파일: `app/api/news/bookmarks/route.ts`
 
-- [ ] 태스크 1b.4.2: 북마크 버튼 컴포넌트 구현
+- [x] 태스크 1b.4.2: 북마크 버튼 컴포넌트 구현
   - 상세: `components/news/bookmark-button.tsx` 신규. Client Component. 북마크 아이콘 (lucide `Bookmark` / `BookmarkCheck`). 낙관적 UI 업데이트 (클릭 즉시 아이콘 변경, API 실패 시 롤백). 100개 초과 시 토스트 에러 메시지. `useOptimistic` 또는 로컬 상태 활용.
   - 관련 파일: `components/news/bookmark-button.tsx`
 
-- [ ] 태스크 1b.4.3: 뉴스 카드/상세 페이지에 북마크 버튼 통합
+- [x] 태스크 1b.4.3: 뉴스 카드/상세 페이지에 북마크 버튼 통합
   - 상세: `news-group-card.tsx`에 북마크 아이콘 추가 (카드 우측 상단). `news-detail.tsx`에 북마크 버튼 배치. 북마크 상태 확인을 위한 사용자별 북마크 목록 패칭 (클라이언트 사이드).
   - 관련 파일: `components/news/news-group-card.tsx`, `components/news/news-detail.tsx`
 
-- [ ] 태스크 1b.4.4: 북마크 목록 쿼리 함수 구현
+- [x] 태스크 1b.4.4: 북마크 목록 쿼리 함수 구현
   - 상세: `lib/news/queries.ts`에 `getUserBookmarkedGroups(userId: string, page?: number, limit?: number)` 추가. `user_bookmarks` JOIN `news_article_groups` JOIN 대표 `news_articles`. 최신 북마크 순 정렬. 페이지네이션 지원.
   - 관련 파일: `lib/news/queries.ts`
 
-- [ ] 태스크 1b.4.5: 뉴스 페이지에 "북마크" 탭 추가
+- [x] 태스크 1b.4.5: 뉴스 페이지에 "북마크" 탭 추가
   - 상세: `components/news/news-category-tabs.tsx` 수정. 기존 카테고리 탭 목록에 "북마크" 탭 추가. 선택 시 `?category=bookmarks` URL 파라미터. `app/protected/news/page.tsx`에서 `category === 'bookmarks'`일 때 `getUserBookmarkedGroups()` 호출.
   - 관련 파일: `components/news/news-category-tabs.tsx`, `app/protected/news/page.tsx`
 
-- [ ] 태스크 1b.4.6: Playwright MCP 테스트 - 뉴스 북마크
+- [x] 태스크 1b.4.6: Playwright MCP 테스트 - 뉴스 북마크
   - 사전 조건: 태스크 1b.4.5 완료
   - 검증 항목:
     1. `browser_navigate`로 `/protected/news` 접근 -> 북마크 아이콘 존재 확인
@@ -322,31 +322,31 @@
 
 #### 마일스톤 1b.5: 사용자 설정 페이지 (F103)
 
-- [ ] 태스크 1b.5.1: 설정 페이지 데이터 쿼리/뮤테이션 함수 구현
+- [x] 태스크 1b.5.1: 설정 페이지 데이터 쿼리/뮤테이션 함수 구현
   - 상세: `lib/user/preferences.ts` 신규. `getUserPreferences(userId: string)` - 설정 조회 (없으면 기본값 반환). `updateUserPreferences(userId: string, data: Partial<UserPreferences>)` - 설정 업데이트 (upsert). Supabase Server Client 사용.
   - 관련 파일: `lib/user/preferences.ts`
 
-- [ ] 태스크 1b.5.2: 설정 API Route 구현
+- [x] 태스크 1b.5.2: 설정 API Route 구현
   - 상세: `app/api/user/preferences/route.ts` 신규. GET: 현재 사용자 설정 조회. PUT: 설정 업데이트 (preferred_categories, dashboard_config 등). 인증 필요.
   - 관련 파일: `app/api/user/preferences/route.ts`
 
-- [ ] 태스크 1b.5.3: 프로필 섹션 컴포넌트 구현
+- [x] 태스크 1b.5.3: 프로필 섹션 컴포넌트 구현
   - 상세: `components/settings/profile-section.tsx` 신규. 소셜 로그인 프로바이더 표시, 이메일, 이름, 아바타, 가입일 표시. 읽기 전용 (소셜 프로필은 프로바이더에서 관리).
   - 관련 파일: `components/settings/profile-section.tsx`
 
-- [ ] 태스크 1b.5.4: 선호 카테고리 설정 컴포넌트 구현
+- [x] 태스크 1b.5.4: 선호 카테고리 설정 컴포넌트 구현
   - 상세: `components/settings/category-preferences.tsx` 신규. Client Component. 7개 카테고리 체크박스. 복수 선택 가능. 변경 시 API 호출로 저장. 저장 완료 토스트.
   - 관련 파일: `components/settings/category-preferences.tsx`
 
-- [ ] 태스크 1b.5.5: 설정 페이지 구현 (`/protected/settings`)
+- [x] 태스크 1b.5.5: 설정 페이지 구현 (`/protected/settings`)
   - 상세: `app/protected/settings/page.tsx` 신규. Server Component. 프로필 섹션 + 선호 카테고리 섹션 + (향후) 위젯 설정 섹션. 탭 또는 섹션 분리. `getUserPreferences()` 호출.
   - 관련 파일: `app/protected/settings/page.tsx`
 
-- [ ] 태스크 1b.5.6: 헤더에 설정 링크 추가
+- [x] 태스크 1b.5.6: 헤더에 설정 링크 추가
   - 상세: `components/layout/header.tsx`의 사용자 드롭다운 메뉴(또는 AuthButton 영역)에 "설정" 링크 추가. `/protected/settings`로 이동. `components/layout/nav-links.ts` 또는 `mobile-nav.tsx`에도 반영.
   - 관련 파일: `components/layout/header.tsx`, `components/layout/mobile-nav.tsx`
 
-- [ ] 태스크 1b.5.7: Playwright MCP 테스트 - 사용자 설정 페이지
+- [x] 태스크 1b.5.7: Playwright MCP 테스트 - 사용자 설정 페이지
   - 사전 조건: 태스크 1b.5.5, 1b.5.6 완료
   - 검증 항목:
     1. `browser_navigate`로 `/protected/settings` 접근 -> 프로필 섹션 렌더링 확인
@@ -358,19 +358,19 @@
 
 #### 마일스톤 1b.6: 뉴스 공유 (F106)
 
-- [ ] 태스크 1b.6.1: 공유 버튼/드롭다운 컴포넌트 구현
+- [x] 태스크 1b.6.1: 공유 버튼/드롭다운 컴포넌트 구현
   - 상세: `components/news/share-button.tsx` 신규. Client Component. 공유 아이콘 (lucide `Share2`) 클릭 시 드롭다운 메뉴: "요약 복사" (팩트 요약 텍스트 클립보드 복사), "링크 복사" (`/protected/news/[groupId]` URL 클립보드 복사). Web Clipboard API (`navigator.clipboard.writeText()`) 사용. 복사 완료 시 "클립보드에 복사되었습니다" 토스트 메시지 (shadcn/ui `toast`).
   - 관련 파일: `components/news/share-button.tsx`
 
-- [ ] 태스크 1b.6.2: 뉴스 상세 페이지에 공유 버튼 통합
+- [x] 태스크 1b.6.2: 뉴스 상세 페이지에 공유 버튼 통합
   - 상세: `components/news/news-detail.tsx`에 `ShareButton` 컴포넌트 배치. 상단 메타 영역 또는 팩트 요약 카드 옆에 배치. 북마크 버튼과 나란히.
   - 관련 파일: `components/news/news-detail.tsx`
 
-- [ ] 태스크 1b.6.3: shadcn/ui Toast 컴포넌트 설치 (미설치 시)
+- [x] 태스크 1b.6.3: shadcn/ui Toast 컴포넌트 설치 (미설치 시)
   - 상세: `npx shadcn@latest add toast sonner` 실행. 토스트 프로바이더를 루트 레이아웃에 추가 (미설치 시에만).
   - 관련 파일: `components/ui/sonner.tsx`, `app/layout.tsx`
 
-- [ ] 태스크 1b.6.4: Playwright MCP 테스트 - 뉴스 공유
+- [x] 태스크 1b.6.4: Playwright MCP 테스트 - 뉴스 공유
   - 사전 조건: 태스크 1b.6.2 완료
   - 검증 항목:
     1. `browser_navigate`로 뉴스 상세 페이지 접근 -> 공유 버튼 존재 확인
@@ -729,7 +729,7 @@
 
 ### 기술적 리스크
 
-- **OAuth 프로바이더 설정 복잡도**: Google, Kakao, Apple 각각 별도의 개발자 콘솔 설정, 리뷰 프로세스가 필요하다. Apple은 유료 개발자 계정 필수. Kakao는 동의 항목 설정이 세밀하다.
+- **OAuth 프로바이더 설정 복잡도**: Google, Kakao 각각 별도의 개발자 콘솔 설정, 리뷰 프로세스가 필요하다. Kakao는 동의 항목 설정이 세밀하다.
 - **소셜 로그인 전환 시 기존 사용자**: 이메일/비밀번호 사용자가 동일 이메일의 소셜 계정으로 전환할 때 자동 링킹이 정상 동작하는지 철저한 테스트 필요.
 - **한국어 FTS 미지원**: PostgreSQL 내장 FTS는 한국어 사전이 없어 `pg_trgm` ILIKE로 대체. 대량 데이터에서 성능 저하 가능성. Typesense/Meilisearch 도입 시점 모니터링 필요.
 - **OpenWeatherMap API 무료 제한**: Free tier에서 1분당 60회 호출 제한. `use cache` 캐싱으로 대응하되, 사용자 수 증가 시 유료 전환 또는 캐시 TTL 조정 필요.
@@ -740,7 +740,7 @@
 ### 일정 리스크
 
 - **1인 개발**: v1.1 전체를 한 번에 릴리스하지 않고 v1.1a~d로 분할하여 점진적 배포. 각 단계별 프로덕션 배포 후 안정화 기간 확보.
-- **OAuth 콘솔 심사 지연**: Google/Apple OAuth 앱 심사에 수일~수주 소요 가능. 개발 모드에서 선 테스트 후 프로덕션 심사 병행.
+- **OAuth 콘솔 심사 지연**: Google OAuth 앱 심사에 수일~수주 소요 가능. 개발 모드에서 선 테스트 후 프로덕션 심사 병행.
 - **v1.1c~d 범위**: 관리자 시스템 5개 페이지는 상당한 분량. 핵심(F120, F121, F122)만 우선 구현하고, 나머지(F123~F125)는 운영 필요에 따라 유동적으로 진행.
 
 ### 의존성 리스크
@@ -761,7 +761,7 @@
 ## 가정 사항
 
 - v1.0 MVP가 프로덕션에 정상 운영 중이며, DB 스키마와 기존 코드가 안정된 상태이다.
-- Google Cloud Console, Kakao Developers, Apple Developer 계정이 준비되어 OAuth 앱 등록이 가능하다.
+- Google Cloud Console, Kakao Developers 계정이 준비되어 OAuth 앱 등록이 가능하다.
 - OpenWeatherMap Free tier API 키가 발급 가능하다.
 - Supabase 프로젝트의 Authentication > Providers 설정 접근이 가능하다.
 - Vercel Hobby 플랜의 Cron 실행 빈도 제한을 현재 상태(하루 2회)로 유지한다.
