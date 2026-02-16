@@ -1,8 +1,10 @@
+import { updateTag } from "next/cache";
 import { NextResponse, type NextRequest } from "next/server";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { fetchRssFeed, toArticleInserts } from "@/lib/news/rss-fetcher";
-import { groupArticles } from "@/lib/news/grouping";
+
+import { cleanupOldRecords } from "@/lib/news/cleanup";
 import { logFetchResult, updateLastFetchedAt } from "@/lib/news/fetch-logger";
+import { groupArticles } from "@/lib/news/grouping";
+import { fetchRssFeed, toArticleInserts } from "@/lib/news/rss-fetcher";
 import { enqueueSummarizeJobs } from "@/lib/news/summarize-queue";
 import type {
   NewsSource,
@@ -10,6 +12,7 @@ import type {
   ArticleInsert,
   CollectResponse,
 } from "@/lib/news/types";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const maxDuration = 60;
 
@@ -175,6 +178,13 @@ async function handleCollect(request: NextRequest) {
 
   // 수집 로그 기록
   await Promise.allSettled(fetchResults.map((r) => logFetchResult(r)));
+
+  // 뉴스 캐시 무효화 (use cache 태그 기반)
+  updateTag("news-groups");
+  updateTag("news-group-articles");
+
+  // 오래된 데이터 정리 (실패해도 수집 결과에 영향 없음)
+  await cleanupOldRecords();
 
   const response: CollectResponse = {
     success: true,
