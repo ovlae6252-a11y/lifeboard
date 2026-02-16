@@ -69,55 +69,55 @@
 
 > 백엔드/파이프라인 변경을 먼저 수행하여, 프론트엔드 작업 시 데이터 품질이 보장되도록 한다.
 
-- [ ] 태스크 1a.1.1: `news_article_groups` 테이블에 `is_valid` 컬럼 추가 (F111)
+- [x] 태스크 1a.1.1: `news_article_groups` 테이블에 `is_valid` 컬럼 추가 (F111)
   - 상세: `is_valid BOOLEAN DEFAULT true` 컬럼 추가. `WHERE is_valid = true` partial index 생성. 기존 데이터는 기본값으로 모두 valid.
   - 관련 파일: `supabase/migrations/[timestamp]_add_is_valid_column.sql`
 
-- [ ] 태스크 1a.1.2: `news_fetch_logs` 테이블에 `filtered_count` 컬럼 추가 (F113)
+- [x] 태스크 1a.1.2: `news_fetch_logs` 테이블에 `filtered_count` 컬럼 추가 (F113)
   - 상세: `filtered_count INTEGER DEFAULT 0` 컬럼 추가. 콘텐츠 필터링된 기사 수 기록용.
   - 관련 파일: `supabase/migrations/[timestamp]_add_filtered_count_column.sql`
 
-- [ ] 태스크 1a.1.3: `content_filters` 테이블 생성 (F113)
+- [x] 태스크 1a.1.3: `content_filters` 테이블 생성 (F113)
   - 상세: `id UUID PK`, `filter_type TEXT NOT NULL` ('blacklist' | 'whitelist'), `keywords TEXT[] NOT NULL`, `is_active BOOLEAN DEFAULT true`, `created_at`, `updated_at`. RLS: 모든 인증 사용자 읽기 전용, service_role만 수정. 초기 시드 데이터로 블랙리스트/화이트리스트 키워드 INSERT.
   - 관련 파일: `supabase/migrations/[timestamp]_create_content_filters.sql`
 
-- [ ] 태스크 1a.1.4: `news_articles` 테이블에 `is_deleted` 컬럼 추가 (F122 선행)
+- [x] 태스크 1a.1.4: `news_articles` 테이블에 `is_deleted` 컬럼 추가 (F122 선행)
   - 상세: `is_deleted BOOLEAN DEFAULT false` 컬럼 추가. v1.1c 관리자 기사 관리에서 soft delete용. 프론트엔드 쿼리에서 `WHERE is_deleted = false` 필터 추가.
   - 관련 파일: `supabase/migrations/[timestamp]_add_is_deleted_column.sql`
 
-- [ ] 태스크 1a.1.5: `database.types.ts` 재생성
+- [x] 태스크 1a.1.5: `database.types.ts` 재생성
   - 상세: 위 컬럼 추가 후 `npx supabase gen types typescript --project-id <project-id> > lib/supabase/database.types.ts` 실행하여 타입 파일 갱신.
   - 관련 파일: `lib/supabase/database.types.ts`
 
-- [ ] 태스크 1a.1.6: Ollama 프롬프트 한국어 전용 강화 (F111)
+- [x] 태스크 1a.1.6: Ollama 프롬프트 한국어 전용 강화 (F111)
   - 상세: `scripts/summarizer.ts`의 팩트 추출 프롬프트에 "**CRITICAL: 반드시 한국어로만 작성하세요. 절대로 다른 언어(영어, 중국어, 일본어 등)를 섞지 마세요.**" 문구 추가. 응답 시작/끝에도 한국어 강조 지시문 배치.
   - 관련 파일: `scripts/summarizer.ts`
 
-- [ ] 태스크 1a.1.7: 한국어 검증 함수 구현 및 워커에 적용 (F111)
+- [x] 태스크 1a.1.7: 한국어 검증 함수 구현 및 워커에 적용 (F111)
   - 상세: `scripts/summarizer.ts`에 `validateKoreanContent(text: string): boolean` 함수 추가. 한글 문자 비율 70% 미만이면 false 반환. 요약 완료 후 검증 실패 시 `news_article_groups.is_valid = false` 업데이트. 실패 사유를 `summarize_jobs.error_message`에 기록.
   - 관련 파일: `scripts/summarizer.ts`
 
-- [ ] 태스크 1a.1.8: `batch_group_articles` RPC 기본 파라미터 변경 (F112)
+- [x] 태스크 1a.1.8: `batch_group_articles` RPC 기본 파라미터 변경 (F112)
   - 상세: `p_similarity_threshold` 기본값 0.6 -> 0.5, `p_hours_range` 기본값 48 -> 72. 기존 함수 전체를 `CREATE OR REPLACE`로 재생성. 함수 본문은 `20260216000006_add_batch_group_articles_rpc.sql` 참고하여 동일하게 유지.
   - 관련 파일: `supabase/migrations/[timestamp]_update_grouping_threshold.sql`
 
-- [ ] 태스크 1a.1.9: 추가 RSS 소스 시드 데이터 등록 (F112)
+- [x] 태스크 1a.1.9: 추가 RSS 소스 시드 데이터 등록 (F112)
   - 상세: 중앙일보, 조선일보, 서울신문 등 추가하여 12개 -> 20개+ 소스로 확대. 카테고리별 균형 배분. `news_sources` INSERT 마이그레이션.
   - 관련 파일: `supabase/migrations/[timestamp]_seed_additional_news_sources.sql`
 
-- [ ] 태스크 1a.1.10: 콘텐츠 필터링 모듈 구현 (F113)
+- [x] 태스크 1a.1.10: 콘텐츠 필터링 모듈 구현 (F113)
   - 상세: `lib/news/content-filter.ts` 신규. `shouldFilterArticle(title: string): boolean` 함수. `content_filters` 테이블에서 활성 필터 조회 (캐싱 권장). 블랙리스트 키워드 포함 + 화이트리스트 미포함 시 true 반환.
   - 관련 파일: `lib/news/content-filter.ts`
 
-- [ ] 태스크 1a.1.11: RSS 수집 API에 콘텐츠 필터링 적용 (F113)
+- [x] 태스크 1a.1.11: RSS 수집 API에 콘텐츠 필터링 적용 (F113)
   - 상세: `app/api/news/collect/route.ts`에서 DB INSERT 전에 `shouldFilterArticle()` 호출. 필터링된 기사 수를 `news_fetch_logs.filtered_count`에 기록. 수집 결과 JSON에 `filteredCount` 포함.
   - 관련 파일: `app/api/news/collect/route.ts`, `lib/news/fetch-logger.ts`
 
-- [ ] 태스크 1a.1.12: 프론트엔드 뉴스 쿼리에 `is_valid` 필터 추가 (F111)
+- [x] 태스크 1a.1.12: 프론트엔드 뉴스 쿼리에 `is_valid` 필터 추가 (F111)
   - 상세: `lib/news/queries.ts`의 `getNewsGroups()`, `getLatestNewsGroups()` 쿼리에 `.eq("is_valid", true)` 조건 추가. `is_deleted` 필터도 함께 적용 (`.eq("is_deleted", false)` - 대표 기사 조인 시).
   - 관련 파일: `lib/news/queries.ts`
 
-- [ ] 태스크 1a.1.13: Playwright MCP 테스트 - 백엔드 파이프라인 변경 검증
+- [x] 태스크 1a.1.13: Playwright MCP 테스트 - 백엔드 파이프라인 변경 검증
   - 사전 조건: 태스크 1a.1.1 ~ 1a.1.12 완료
   - 검증 항목:
     1. `browser_navigate`로 `/protected/news` 접근 -> 페이지 정상 로드
@@ -127,23 +127,23 @@
 
 #### 마일스톤 1a.2: 뉴스 카드 UI 간소화 (F108)
 
-- [ ] 태스크 1a.2.1: 카테고리별 기본 이미지 에셋 준비
+- [x] 태스크 1a.2.1: 카테고리별 기본 이미지 에셋 준비
   - 상세: `public/images/categories/` 디렉토리 생성. 7개 카테고리(politics, economy, society, culture, science, world, default)에 대한 플레이스홀더 이미지 추가. 16:9 비율, 최적화된 WebP 또는 SVG.
   - 관련 파일: `public/images/categories/*.{webp,svg}`
 
-- [ ] 태스크 1a.2.2: 이미지 폴백 유틸리티 함수 구현
+- [x] 태스크 1a.2.2: 이미지 폴백 유틸리티 함수 구현
   - 상세: `lib/utils/news-image.ts` 신규. `getNewsImageUrl(imageUrl: string | null, category: string): string` 함수. 우선순위: (1) RSS 제공 image_url -> (2) 카테고리별 기본 이미지 -> (3) 기본 플레이스홀더. `next/image` 리모트 도메인 설정 필요 시 `next.config.ts` 업데이트.
   - 관련 파일: `lib/utils/news-image.ts`, `next.config.ts`
 
-- [ ] 태스크 1a.2.3: `news-group-card.tsx` 리팩토링 - 간소화된 카드 UI (F108)
+- [x] 태스크 1a.2.3: `news-group-card.tsx` 리팩토링 - 간소화된 카드 UI (F108)
   - 상세: 기존 카드(팩트 요약 + 관련 기사 링크)를 **대표이미지 + 제목 + 카테고리 배지 + 기사 수 + 상대시간**으로 간소화. 카드 전체를 `Link` 컴포넌트로 감싸서 `/protected/news/[groupId]`로 이동. 좌측 썸네일(1:1 또는 16:9) + 우측 메타정보 레이아웃. 모바일에서는 상단 이미지 + 하단 텍스트. `next/image` 활용.
   - 관련 파일: `components/news/news-group-card.tsx`
 
-- [ ] 태스크 1a.2.4: `news-dashboard-section.tsx` 카드 UI 동기화 (F108)
+- [x] 태스크 1a.2.4: `news-dashboard-section.tsx` 카드 UI 동기화 (F108)
   - 상세: 대시보드 뉴스 섹션도 간소화된 카드 UI 적용. 카드 클릭 시 상세 페이지로 이동.
   - 관련 파일: `components/news/news-dashboard-section.tsx`
 
-- [ ] 태스크 1a.2.5: Playwright MCP 테스트 - 간소화된 뉴스 카드 UI
+- [x] 태스크 1a.2.5: Playwright MCP 테스트 - 간소화된 뉴스 카드 UI
   - 사전 조건: 태스크 1a.2.3, 1a.2.4 완료
   - 검증 항목:
     1. `browser_navigate`로 `/protected/news` 접근 -> 간소화된 카드 렌더링 확인
@@ -155,27 +155,27 @@
 
 #### 마일스톤 1a.3: 뉴스 상세 페이지 + 통일된 팩트 요약 폼 (F109, F110)
 
-- [ ] 태스크 1a.3.1: 뉴스 상세 데이터 쿼리 함수 구현
+- [x] 태스크 1a.3.1: 뉴스 상세 데이터 쿼리 함수 구현
   - 상세: `lib/news/queries.ts`에 `getNewsGroupDetail(groupId: string)` 추가. 그룹 정보(대표 기사 제목, 카테고리, article_count, fact_summary, created_at) + 대표 기사 조인. `getRelatedArticles(groupId: string)` 추가. 그룹 내 모든 기사 목록 (제목, 소스명, original_url, published_at), 발행시간 최신순 정렬.
   - 관련 파일: `lib/news/queries.ts`
 
-- [ ] 태스크 1a.3.2: 통일된 팩트 요약 카드 컴포넌트 구현 (F110)
+- [x] 태스크 1a.3.2: 통일된 팩트 요약 카드 컴포넌트 구현 (F110)
   - 상세: `components/news/fact-summary-card.tsx` 신규. shadcn/ui `Card` 기반. 좌측 "팩트 체크" 아이콘(lucide `CheckCircle` 또는 `ClipboardCheck`), 우측 불릿 포인트 목록. 제목: font-semibold text-lg, 불릿: text-base leading-relaxed. 커스텀 불릿 (체크 아이콘). 빈 상태: "AI 팩트 요약 생성 중입니다..." 스켈레톤.
   - 관련 파일: `components/news/fact-summary-card.tsx`
 
-- [ ] 태스크 1a.3.3: 관련 기사 목록 컴포넌트 구현
+- [x] 태스크 1a.3.3: 관련 기사 목록 컴포넌트 구현
   - 상세: `components/news/related-articles-list.tsx` 신규. 기사별 제목 + 언론사명(소스) + 발행시간(상대시간) + 외부 링크 아이콘. 클릭 시 `original_url`로 새 탭 열기. 반응형 레이아웃.
   - 관련 파일: `components/news/related-articles-list.tsx`
 
-- [ ] 태스크 1a.3.4: 뉴스 상세 레이아웃 컴포넌트 구현 (F109)
+- [x] 태스크 1a.3.4: 뉴스 상세 레이아웃 컴포넌트 구현 (F109)
   - 상세: `components/news/news-detail.tsx` 신규. 상단: 대표 기사 제목 + 카테고리 배지 + 기사 수 + 생성일시. 중단: `FactSummaryCard` 컴포넌트. 하단: `RelatedArticlesList` 컴포넌트. "뒤로가기" 버튼 (뉴스 목록으로). Server Component.
   - 관련 파일: `components/news/news-detail.tsx`
 
-- [ ] 태스크 1a.3.5: 뉴스 상세 페이지 구현 (`/protected/news/[groupId]`)
+- [x] 태스크 1a.3.5: 뉴스 상세 페이지 구현 (`/protected/news/[groupId]`)
   - 상세: `app/protected/news/[groupId]/page.tsx` 신규. Server Component. `params.groupId`로 `getNewsGroupDetail()` + `getRelatedArticles()` 호출. `NewsDetail` 컴포넌트에 데이터 전달. 존재하지 않는 groupId일 경우 `notFound()` 호출. `Suspense` fallback 적용. `app/protected/news/[groupId]/loading.tsx` 스켈레톤 추가.
   - 관련 파일: `app/protected/news/[groupId]/page.tsx`, `app/protected/news/[groupId]/loading.tsx`
 
-- [ ] 태스크 1a.3.6: Playwright MCP 테스트 - 뉴스 상세 페이지 + 팩트 요약 폼
+- [x] 태스크 1a.3.6: Playwright MCP 테스트 - 뉴스 상세 페이지 + 팩트 요약 폼
   - 사전 조건: 태스크 1a.3.5 완료, DB에 요약된 뉴스 그룹 존재
   - 검증 항목:
     1. `browser_navigate`로 `/protected/news` 접근 -> 카드 클릭 -> 상세 페이지 이동
@@ -768,7 +768,9 @@
 
 ## 변경 이력
 
-| 날짜       | 버전 | 변경 내용                                                           |
-| ---------- | ---- | ------------------------------------------------------------------- |
-| 2026-02-16 | 2.0  | 초기 로드맵 생성 (PRD v2.4 기반)                                    |
-| 2026-02-16 | 2.1  | v1.1 범위로 축소 (v1.2, v2.0 섹션 제거 — 별도 로드맵으로 분리 예정) |
+| 날짜       | 버전 | 변경 내용                                                             |
+| ---------- | ---- | --------------------------------------------------------------------- |
+| 2026-02-16 | 2.0  | 초기 로드맵 생성 (PRD v2.4 기반)                                      |
+| 2026-02-16 | 2.1  | v1.1 범위로 축소 (v1.2, v2.0 섹션 제거 — 별도 로드맵으로 분리 예정)   |
+| 2026-02-16 | 2.2  | v1.1a 마일스톤 1a.1~1a.3 태스크 완료 상태 업데이트 (22개 태스크 완료) |
+| 2026-02-16 | 2.3  | v1.1a Playwright 테스트 3개 완료 처리 - 전체 25개 태스크 완료         |

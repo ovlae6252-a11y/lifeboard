@@ -4,10 +4,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 프로젝트 개요
 
-라이프보드(Lifeboard) - 인생의 모든 데이터를 한눈에 볼 수 있는 통합 대시보드. Next.js + Supabase 기반. MVP(Phase 0~5 완료)는 한국 언론사 RSS 뉴스 수집 + AI 팩트 요약에 집중.
+라이프보드(Lifeboard) - 인생의 모든 데이터를 한눈에 볼 수 있는 통합 대시보드. Next.js + Supabase 기반.
 
+- **현재 버전**: v1.1a (뉴스 UX 개선 완료 - 카드 간소화, 상세 페이지, AI 품질 관리, 콘텐츠 필터링)
+- **MVP 상태**: Phase 0~5 완료 (2026-02-16), v1.1a 완료 (2026-02-16)
 - **프로덕션**: https://lifeboard-omega.vercel.app
 - **GitHub**: https://github.com/ovlae6252-a11y/lifeboard
+
+**주요 기능** (v1.1a 기준):
+- RSS 뉴스 자동 수집 (20+ 언론사, 하루 2회)
+- 유사 기사 그룹핑 (pg_trgm 기반, 유사도 임계값 0.5)
+- AI 팩트 요약 (Ollama qwen2.5:14b, 한국어 품질 검증)
+- 콘텐츠 필터링 (키워드 블랙리스트/화이트리스트)
+- 뉴스 상세 페이지 (팩트 요약 + 관련 기사 목록)
+- 카테고리별 탐색 및 페이지네이션
+- 반응형 대시보드 + 다크모드
 
 ## 개발 명령어
 
@@ -61,8 +72,9 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
 - `/auth/*` - 인증 플로우 (login, sign-up, forgot-password, update-password, confirm, error, sign-up-success)
 - `/auth/confirm` - 이메일 OTP 검증 Route Handler (GET). Open Redirect 방지를 위해 `next` 파라미터는 상대 경로만 허용
 - `/protected/*` - 인증 필요 페이지 (Header + Footer 공통 레이아웃, `max-w-6xl`)
-- `/protected` - 대시보드
-- `/protected/news` - 뉴스 페이지
+- `/protected` - 대시보드 (최신 뉴스 6개 프리뷰)
+- `/protected/news` - 뉴스 목록 페이지 (카테고리 탭 + 페이지네이션)
+- `/protected/news/[groupId]` - 뉴스 상세 페이지 (팩트 요약 + 관련 기사 목록 + 메타정보, v1.1a 추가)
 - `/api/news/collect` - RSS 수집 API (GET/POST, `CRON_SECRET` 인증 필요)
 
 ### 컴포넌트 패턴
@@ -72,6 +84,14 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
   - `header.tsx`는 Server Component. AuthButton(서버) + ThemeSwitcher/MobileNav(클라이언트) 조합
   - `footer.tsx`는 Client Component (`new Date()` 사용)
 - `components/news/` - 뉴스 UI 컴포넌트 (Server/Client 분리)
+  - **카드 컴포넌트**: `news-group-card.tsx` (간소화된 UI: 이미지 + 제목 + 메타정보, 상세 페이지 링크)
+  - **상세 페이지**: `news-detail.tsx` (레이아웃), `fact-summary-card.tsx` (팩트 요약), `related-articles-list.tsx` (관련 기사)
+  - **마크다운 렌더링**: `markdown-fact.tsx` (react-markdown + remark-gfm, 팩트 불릿 포인트)
+  - **시간 표시**: `relative-time.tsx` (Client Component, 상대 시간 자동 갱신)
+  - **목록/탐색**: `news-list.tsx`, `news-category-tabs.tsx`, `news-pagination.tsx`
+  - **상태 표시**: `news-skeleton.tsx` (로딩), `news-empty-state.tsx` (빈 상태)
+  - **대시보드**: `news-dashboard-section.tsx` (최신 뉴스 위젯)
+  - **유틸리티**: `category-gradient.tsx` (카테고리별 그라디언트 스타일)
 - `components/` 루트 - 인증 관련 컴포넌트 (`auth-button.tsx`는 Server Component, 반드시 `<Suspense>` 안에서 사용)
 
 ### Server/Client Component 경계 규칙
@@ -90,8 +110,9 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
 
 `lib/news/`에 수집 + 프론트엔드 쿼리 모듈이 함께 위치:
 
-- 수집 흐름: Vercel Cron (하루 2회, KST 8시/20시 = UTC 23시/11시) → `/api/news/collect` → RSS 파싱 → 중복 필터링 → DB INSERT → 그룹핑 → 요약 큐
-- 프론트엔드 쿼리: `queries.ts`의 `getNewsGroups()`, `getLatestNewsGroups()`, `getNewsGroupArticles()`
+- **수집 흐름** (v1.1a): Vercel Cron (하루 2회, KST 8시/20시 = UTC 23시/11시) → `/api/news/collect` → RSS 파싱 → **콘텐츠 필터링** → 중복 필터링 → DB INSERT → 그룹핑 (유사도 0.5, 72시간) → 요약 큐
+- **프론트엔드 쿼리**: `queries.ts`의 `getNewsGroups()`, `getLatestNewsGroups()`, `getNewsGroupDetail()`, `getRelatedArticles()`
+- **콘텐츠 필터링** (v1.1a): `content-filter.ts`의 `shouldFilterArticle()` 함수. `content_filters` 테이블에서 블랙리스트/화이트리스트 키워드 조회 후 필터링 판단
 - Supabase embedded join 사용 시 FK 이름 명시 필요 (예: `news_articles!fk_representative_article`)
 - Vercel Cron은 `CRON_SECRET` 환경변수가 설정되면 자동으로 `Authorization: Bearer <CRON_SECRET>` 헤더를 포함하여 호출
 
@@ -100,25 +121,34 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
 `scripts/` 디렉토리는 메인 Next.js 프로젝트와 **독립된 패키지**. `tsconfig.json`의 `exclude`에 포함되어 빌드 충돌 방지. Ollama가 설치된 PC에서 상주 실행.
 
 - `worker.ts` - 메인 워커 (Supabase Realtime 구독 + 30초 폴링, `isProcessing` 플래그로 동시성 제어)
-- `summarizer.ts` - Ollama 팩트 추출 모듈 (120초 타임아웃, 3회 재시도)
-- 작업 흐름: pending 감지 → 낙관적 잠금(WHERE status=pending) → 기사 조회 → Ollama 요약 → fact_summary 저장 → completed
+- `summarizer.ts` - Ollama 팩트 추출 모듈 (120초 타임아웃, 3회 재시도, **한국어 품질 검증** v1.1a)
+- **작업 흐름** (v1.1a): pending 감지 → 낙관적 잠금(WHERE status=pending) → 기사 조회 → Ollama 요약 → **한국어 검증** (`validateKoreanContent()`, 한글 비율 70% 이상) → 검증 성공 시 fact_summary 저장 + `is_valid = true`, 실패 시 `is_valid = false` + 에러 기록 → completed
+- **한국어 프롬프트 강화** (v1.1a): "**CRITICAL: 반드시 한국어로만 작성하세요...**" 지시문 추가
 - 환경변수: `scripts/.env`에 별도 설정 (`OLLAMA_BASE_URL`, `OLLAMA_MODEL` 등 — `scripts/.env.example` 참고)
 
 ### DB 마이그레이션
 
-`supabase/migrations/`에 SQL 마이그레이션 파일 관리. `npx supabase db push`로 적용.
+`supabase/migrations/`에 SQL 마이그레이션 파일 관리 (21개). `npx supabase db push`로 적용.
 
-테이블: `news_sources`, `news_article_groups`, `news_articles`, `news_fetch_logs`, `summarize_jobs`
+**테이블:**
+- `news_sources` - RSS 피드 소스 (언론사명, 피드 URL, 카테고리)
+- `news_article_groups` - 유사 기사 그룹 (대표 기사, 팩트 요약, 카테고리, **`is_valid` 품질 플래그** v1.1a)
+- `news_articles` - 개별 기사 (제목, URL, 소스, 그룹 연결, **`is_deleted` soft delete** v1.1a)
+- `news_fetch_logs` - 수집 로그 (소스별 성공/실패, 수집 개수, **`filtered_count` 필터링된 개수** v1.1a)
+- `summarize_jobs` - AI 요약 작업 큐 (상태: pending/processing/completed/failed)
+- **`content_filters`** - 콘텐츠 필터링 규칙 (블랙리스트/화이트리스트 키워드, v1.1a 추가)
 
-RPC 함수 (service_role 전용, anon/authenticated 호출 불가):
+**RPC 함수** (service_role 전용, anon/authenticated 호출 불가):
 - `find_similar_group` - 트라이그램 유사도 기반 그룹 검색
 - `increment_article_count` - 그룹 기사 수 갱신
 - `cleanup_old_records` - 오래된 로그/작업 자동 정리 (90일 로그, 30일 완료 작업)
 - `enqueue_summarize_jobs` - 요약 작업 일괄 등록
 - `get_top_articles_for_groups` - 그룹별 상위 N개 기사 조회 (윈도우 함수)
-- `batch_group_articles` - 배치 그룹핑 (유사도 기반, 단일 트랜잭션)
+- `batch_group_articles` - 배치 그룹핑 (**유사도 임계값 0.5, 72시간 범위**, v1.1a 파라미터 조정)
 
-`summarize_jobs` 테이블에는 `(group_id) WHERE status IN ('pending', 'processing')` partial unique index가 있어 동일 그룹에 대한 중복 작업 생성을 방지함.
+**제약조건:**
+- `summarize_jobs` 테이블: `(group_id) WHERE status IN ('pending', 'processing')` partial unique index로 중복 작업 방지
+- `news_article_groups`: `WHERE is_valid = true` partial index로 품질 검증된 그룹만 조회 최적화 (v1.1a)
 
 ## 코딩 규칙
 
@@ -139,18 +169,31 @@ RPC 함수 (service_role 전용, anon/authenticated 호출 불가):
 
 `.env.local`에 설정 (gitignore됨). `.env.example` 참고:
 
-```
-NEXT_PUBLIC_SUPABASE_URL=<supabase-project-url>
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<supabase-publishable-key>
+```env
+# Supabase (필수)
+NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<supabase-anon-key>
 SUPABASE_SERVICE_ROLE_KEY=<service-role-key>  # 서버 전용, 절대 클라이언트 노출 금지
+
+# API 인증 (필수)
 CRON_SECRET=<랜덤-시크릿>                     # API Route 인증용 (Vercel Cron 자동 포함)
-SLACK_WEBHOOK_URL=<slack-webhook-url>          # 훅 알림용 (선택)
+
+# 알림 (선택)
+SLACK_WEBHOOK_URL=<slack-webhook-url>          # 훅 알림용
+
+# 테스트 (로컬)
+TEST_USER_EMAIL=test@lifeboard.dev
+TEST_USER_PASSWORD=TestPass1234!@
 ```
+
+> **참고**: `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`는 Supabase 대시보드의 "anon" public key입니다.
+> [API 설정](https://supabase.com/dashboard/project/_?showConnect=true)에서 확인할 수 있습니다.
 
 ## 개발 참고
 
-- `docs/ROADMAP.md` - 개발 로드맵 (Phase 0~5 전체 완료)
-- `docs/PRD.md` - 제품 요구사항 문서
+- `docs/ROADMAP.md` - 개발 로드맵 (v1.0 완료, v1.1a 완료, v1.1b 진행 예정)
+- `docs/PRD.md` - 제품 요구사항 문서 (v2.4, 2026-02-16)
+- `docs/complete/ROADMAP_v1.0.md` - v1.0 (Phase 0~5) 아카이브
 
 ## 태스크 관리 규칙
 
