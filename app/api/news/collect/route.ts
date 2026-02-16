@@ -231,8 +231,8 @@ async function handleCollect(request: NextRequest) {
   await Promise.allSettled(fetchResults.map((r) => logFetchResult(r)));
 
   // 뉴스 캐시 무효화 (use cache 태그 기반)
-  revalidateTag("news-groups");
-  revalidateTag("news-group-articles");
+  revalidateTag("news-groups", "max");
+  revalidateTag("news-group-articles", "max");
 
   // 오래된 데이터 정리 (실패해도 수집 결과에 영향 없음)
   await cleanupOldRecords();
