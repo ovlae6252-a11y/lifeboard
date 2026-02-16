@@ -13,7 +13,7 @@
 | 프론트엔드 프레임워크 | Next.js (App Router)     | 16                      |
 | UI 라이브러리         | React                    | 19                      |
 | 언어                  | TypeScript               | 5.6+ (strict)           |
-| 스타일링              | TailwindCSS              | 3 (CSS 변수 기반 테마)  |
+| 스타일링              | TailwindCSS              | 4 (CSS 변수 기반 테마)  |
 | UI 컴포넌트           | shadcn/ui                | new-york 스타일         |
 | 아이콘                | Lucide React             | -                       |
 | 다크모드              | next-themes              | class 방식              |
@@ -361,10 +361,10 @@
 
 #### 마일스톤 5.1: 통합 테스트
 
-- [ ] 태스크 5.1.1: 전체 파이프라인 수동 통합 테스트
+- [x] 태스크 5.1.1: 전체 파이프라인 수동 통합 테스트
   - 상세: 개발 환경에서 `/api/news/collect` 호출 -> DB에 기사/그룹 저장 확인 -> Ollama 워커로 요약 처리 확인 -> `/protected` 대시보드에서 뉴스 표시 확인 -> `/protected/news`에서 카테고리 필터 동작 확인. 각 단계별 결과 기록.
 
-- [ ] 태스크 5.1.2: Playwright MCP 테스트 - 전체 사용자 여정
+- [x] 태스크 5.1.2: Playwright MCP 테스트 - 전체 사용자 여정
   - 검증 항목:
     1. `browser_navigate`로 `/` 접근 -> 홈 페이지 로드
     2. `browser_navigate`로 `/auth/login` 접근 -> 로그인 폼 표시
@@ -378,16 +378,16 @@
 
 #### 마일스톤 5.2: 배포 준비
 
-- [ ] 태스크 5.2.1: 프로덕션 환경 변수 설정
+- [x] 태스크 5.2.1: 프로덕션 환경 변수 설정
   - 상세: Vercel 프로젝트에 환경 변수 설정 (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `CRON_SECRET`). Supabase 프로젝트 RLS 정책 최종 확인.
 
-- [ ] 태스크 5.2.2: 프로덕션 빌드 검증
+- [x] 태스크 5.2.2: 프로덕션 빌드 검증
   - 상세: `npm run build` 실행하여 빌드 에러 없음 확인. `npm run lint` 통과 확인. TypeScript 타입 에러 없음 확인.
 
-- [ ] 태스크 5.2.3: Vercel 배포 및 Cron 동작 확인
+- [x] 태스크 5.2.3: Vercel 배포 및 Cron 동작 확인
   - 상세: Vercel에 배포. Cron 설정이 올바르게 등록되었는지 확인. 첫 번째 Cron 실행 후 DB에 데이터가 수집되는지 확인.
 
-- [ ] 태스크 5.2.4: Ollama PC 워커 프로덕션 설정
+- [x] 태스크 5.2.4: Ollama PC 워커 프로덕션 설정
   - 상세: Ollama PC에 `scripts/` 배포. 프로덕션 Supabase URL/키 설정. 워커 시작 및 요약 처리 확인.
 
 ---
@@ -444,6 +444,7 @@
 
 ## 변경 이력
 
-| 날짜       | 버전 | 변경 내용                        |
-| ---------- | ---- | -------------------------------- |
-| 2026-02-14 | 1.0  | 초기 로드맵 생성 (PRD v1.0 기반) |
+| 날짜       | 버전 | 변경 내용                         |
+| ---------- | ---- | --------------------------------- |
+| 2026-02-14 | 1.0  | 초기 로드맵 생성 (PRD v1.0 기반)  |
+| 2026-02-16 | 1.1  | Phase 5 전체 완료 - MVP 배포 완료 |
