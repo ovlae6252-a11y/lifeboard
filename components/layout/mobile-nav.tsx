@@ -29,7 +29,7 @@ export function MobileNav() {
       </SheetTrigger>
       <SheetContent side="left" className="w-72">
         <SheetHeader>
-          <SheetTitle className="text-lg font-bold tracking-tight">
+          <SheetTitle className="font-serif text-lg font-bold tracking-tight">
             Lifeboard
           </SheetTitle>
         </SheetHeader>

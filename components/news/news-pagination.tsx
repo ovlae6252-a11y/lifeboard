@@ -60,7 +60,7 @@ export function NewsPagination({
         </Button>
 
         {/* 페이지 정보 */}
-        <span className="text-muted-foreground text-sm">
+        <span className="text-muted-foreground font-mono text-sm">
           {currentPage} / {totalPages} 페이지
         </span>
 
@@ -77,7 +77,7 @@ export function NewsPagination({
       </div>
 
       {/* 총 건수 */}
-      <p className="text-muted-foreground text-center text-xs">
+      <p className="text-muted-foreground text-center font-mono text-xs">
         전체 {totalCount}건
       </p>
     </nav>

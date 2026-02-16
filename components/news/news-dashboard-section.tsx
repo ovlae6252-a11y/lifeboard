@@ -13,7 +13,7 @@ export async function NewsDashboardSection() {
   return (
     <section>
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-xl font-bold">최신 뉴스</h2>
+        <h2 className="font-serif text-xl font-bold">최신 뉴스</h2>
         <Link
           href="/protected/news"
           className="text-muted-foreground hover:text-primary flex items-center gap-1 text-sm transition-colors"

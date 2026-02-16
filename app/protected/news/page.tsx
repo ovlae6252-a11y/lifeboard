@@ -56,7 +56,7 @@ export default function NewsPage({
     <div className="space-y-6">
       {/* 페이지 헤더 */}
       <div>
-        <h1 className="text-2xl font-bold">뉴스</h1>
+        <h1 className="font-serif text-2xl font-bold">뉴스</h1>
         <p className="text-muted-foreground mt-1 text-sm">
           한국 주요 언론사의 최신 뉴스를 AI가 팩트 중심으로 요약합니다.
         </p>

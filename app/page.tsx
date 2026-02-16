@@ -36,7 +36,10 @@ export default function Home() {
       {/* 헤더 */}
       <nav className="border-border/50 bg-background/80 sticky top-0 z-50 w-full border-b backdrop-blur-xs">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-          <Link href="/" className="text-lg font-bold tracking-tight">
+          <Link
+            href="/"
+            className="font-serif text-lg font-bold tracking-tight"
+          >
             Lifeboard
           </Link>
           <div className="flex items-center gap-3">
@@ -69,7 +72,7 @@ export default function Home() {
 
           {/* 타이틀 */}
           <h1
-            className="animate-fade-in-up text-4xl leading-[1.1] font-bold tracking-tight sm:text-5xl lg:text-6xl"
+            className="animate-fade-in-up font-serif text-4xl leading-[1.1] font-bold tracking-tight sm:text-5xl lg:text-6xl"
             style={{ animationDelay: "100ms" }}
           >
             인생의 모든 데이터를

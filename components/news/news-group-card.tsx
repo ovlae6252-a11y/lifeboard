@@ -45,14 +45,14 @@ export function NewsGroupCard({ group }: NewsGroupCardProps) {
           </Badge>
           <time
             dateTime={publishedAt}
-            className="text-muted-foreground text-xs"
+            className="text-muted-foreground font-mono text-xs"
           >
             {formatRelativeTime(publishedAt)}
           </time>
         </div>
 
         {/* 대표 기사 제목 */}
-        <CardTitle className="line-clamp-2 text-lg leading-snug">
+        <CardTitle className="line-clamp-2 font-serif text-lg leading-snug">
           {title}
         </CardTitle>
       </CardHeader>
@@ -85,7 +85,10 @@ export function NewsGroupCard({ group }: NewsGroupCardProps) {
             <span className="text-muted-foreground text-xs font-medium">
               관련 기사
             </span>
-            <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">
+            <Badge
+              variant="secondary"
+              className="h-5 px-1.5 font-mono text-[10px]"
+            >
               {group.article_count}개
             </Badge>
           </div>

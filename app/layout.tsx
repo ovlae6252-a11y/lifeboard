@@ -5,6 +5,7 @@ import {
   Lora,
   Noto_Sans_KR,
 } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 
@@ -62,6 +63,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <SpeedInsights />
         </ThemeProvider>
       </body>
     </html>
