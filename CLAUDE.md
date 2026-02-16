@@ -24,9 +24,9 @@ npx supabase db push # DB 마이그레이션 적용 (원격 Supabase)
 
 ### 코드 품질 도구
 
-- **Prettier** - 코드 포매터 (`prettier-plugin-tailwindcss`로 Tailwind 클래스 자동 정렬)
+- **Prettier** - 코드 포매터 (`printWidth: 80`, `singleQuote: false`, `trailingComma: "all"`, `prettier-plugin-tailwindcss`)
 - **ESLint** + `eslint-config-prettier` - 린터 (Prettier와 충돌 없음)
-- **Husky** + **lint-staged** - 커밋 시 스테이징된 파일에 자동 린트/포매팅 (`pre-commit` hook)
+- **Husky** + **lint-staged** - 커밋 시 `pre-commit` hook 실행. `.ts/.tsx`는 ESLint + Prettier, `.css/.json/.md`는 Prettier만 적용
 
 ## 기술 스택
 
@@ -34,6 +34,7 @@ npx supabase db push # DB 마이그레이션 적용 (원격 Supabase)
 - **Supabase** (@supabase/ssr) - 인증 및 백엔드
 - **Tailwind CSS 4** + CSS 변수 기반 테마 (다크모드: `next-themes`, class 방식, `@custom-variant dark`)
 - **shadcn/ui** (new-york 스타일, Radix UI, lucide-react 아이콘)
+- **폰트**: Libre Baskerville(sans 기본) + Noto Sans KR(한글) + Lora(serif) + IBM Plex Mono(mono) — `next/font/google`, CSS 변수 방식
 
 ## 아키텍처
 
@@ -45,7 +46,7 @@ npx supabase db push # DB 마이그레이션 적용 (원격 Supabase)
 - `server.ts` - Server Component/Server Action용. **요청마다 새로 생성** (전역 변수 금지)
 - `client.ts` - Client Component용 (브라우저)
 - `proxy.ts` - Middleware(proxy)용. 세션 쿠키 갱신 및 미인증 사용자 리다이렉트 처리
-- `admin.ts` - service_role 클라이언트 (RLS 우회). **모듈 레벨 싱글톤 캐싱** (쿠키 의존성 없으므로 재사용 가능). API Route, Cron 작업 등 서버 전용
+- `admin.ts` - service_role 클라이언트 (RLS 우회). **모듈 레벨 싱글톤 캐싱** (쿠키 의존성 없으므로 재사용 가능). API Route, Cron 작업, `use cache` 함수 등 서버 전용 (쿠키 의존성 없는 환경)
 - `database.types.ts` - Supabase CLI 생성 타입. 모든 클라이언트 팩토리에서 `<Database>` 제네릭으로 사용
 
 인증 상태 확인 시 `supabase.auth.getClaims()` 사용 (`getUser()` 대비 빠름).
@@ -101,6 +102,7 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
 - `worker.ts` - 메인 워커 (Supabase Realtime 구독 + 30초 폴링, `isProcessing` 플래그로 동시성 제어)
 - `summarizer.ts` - Ollama 팩트 추출 모듈 (120초 타임아웃, 3회 재시도)
 - 작업 흐름: pending 감지 → 낙관적 잠금(WHERE status=pending) → 기사 조회 → Ollama 요약 → fact_summary 저장 → completed
+- 환경변수: `scripts/.env`에 별도 설정 (`OLLAMA_BASE_URL`, `OLLAMA_MODEL` 등 — `scripts/.env.example` 참고)
 
 ### DB 마이그레이션
 
@@ -111,6 +113,10 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
 RPC 함수 (service_role 전용, anon/authenticated 호출 불가):
 - `find_similar_group` - 트라이그램 유사도 기반 그룹 검색
 - `increment_article_count` - 그룹 기사 수 갱신
+- `cleanup_old_records` - 오래된 로그/작업 자동 정리 (90일 로그, 30일 완료 작업)
+- `enqueue_summarize_jobs` - 요약 작업 일괄 등록
+- `get_top_articles_for_groups` - 그룹별 상위 N개 기사 조회 (윈도우 함수)
+- `batch_group_articles` - 배치 그룹핑 (유사도 기반, 단일 트랜잭션)
 
 `summarize_jobs` 테이블에는 `(group_id) WHERE status IN ('pending', 'processing')` partial unique index가 있어 동일 그룹에 대한 중복 작업 생성을 방지함.
 
@@ -127,6 +133,7 @@ RPC 함수 (service_role 전용, anon/authenticated 호출 불가):
 - Supabase DB 작업 후 반드시 에러 확인 및 로깅 (`const { error } = await ...` 패턴)
 - Supabase `.in()` 쿼리는 50개 단위로 배치 분할 (PostgREST URL 길이 제한 방지)
 - Supabase 중복 INSERT 방지 시 check-then-insert 대신 INSERT-first + unique constraint violation(23505) 핸들링
+- SQL 마이그레이션 파일의 키워드는 소문자로 통일 (`create or replace function`, `security definer` 등)
 
 ## 환경 변수
 
