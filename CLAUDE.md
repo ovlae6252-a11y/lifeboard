@@ -4,7 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 프로젝트 개요
 
-라이프보드(Lifeboard) - 인생의 모든 데이터를 한눈에 볼 수 있는 통합 대시보드. Next.js + Supabase 기반. MVP는 한국 언론사 RSS 뉴스 수집 + AI 팩트 요약에 집중. Supabase Starter Kit에서 시작하여 개발 중.
+라이프보드(Lifeboard) - 인생의 모든 데이터를 한눈에 볼 수 있는 통합 대시보드. Next.js + Supabase 기반. MVP(Phase 0~5 완료)는 한국 언론사 RSS 뉴스 수집 + AI 팩트 요약에 집중.
+
+- **프로덕션**: https://lifeboard-omega.vercel.app
+- **GitHub**: https://github.com/ovlae6252-a11y/lifeboard
 
 ## 개발 명령어
 
@@ -49,7 +52,7 @@ npx supabase db push # DB 마이그레이션 적용 (원격 Supabase)
 
 ### Middleware (Next.js 16 Proxy 패턴)
 
-Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 함. **`middleware.ts`가 아님에 주의.** 빌드 시 `ƒ Proxy (Middleware)`로 표시됨. 이 파일은 `lib/supabase/proxy.ts`의 `updateSession()`을 호출하여 모든 요청에서 Supabase 세션을 갱신하고, 미인증 사용자를 `/auth/login`으로 리다이렉트. `/`, `/login`, `/auth/*`, `/api/*`는 예외.
+Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 함. **`middleware.ts`가 아님에 주의.** 빌드 시 `ƒ Proxy (Middleware)`로 표시됨. 내보내는 함수명은 `proxy` (not `middleware`). 이 파일은 `lib/supabase/proxy.ts`의 `updateSession()`을 호출하여 모든 요청에서 Supabase 세션을 갱신하고, 미인증 사용자를 `/auth/login`으로 리다이렉트. `/`, `/login`, `/auth/*`, `/api/*`는 예외. `config.matcher`로 정적 파일(`_next/static`, `_next/image`, `favicon.ico`, 이미지 파일)은 제외.
 
 ### 라우팅 구조
 
@@ -139,7 +142,7 @@ SLACK_WEBHOOK_URL=<slack-webhook-url>          # 훅 알림용 (선택)
 
 ## 개발 참고
 
-- `docs/ROADMAP.md` - 개발 로드맵 (Phase 0~5, 체크박스로 진행 추적)
+- `docs/ROADMAP.md` - 개발 로드맵 (Phase 0~5 전체 완료)
 - `docs/PRD.md` - 제품 요구사항 문서
 
 ## 태스크 관리 규칙
@@ -154,3 +157,8 @@ SLACK_WEBHOOK_URL=<slack-webhook-url>          # 훅 알림용 (선택)
 - `sequential-thinking` - 단계적 사고 지원
 - `shadcn` - shadcn/ui 컴포넌트 관리
 - `shrimp-task-manager` - 태스크 관리
+
+글로벌 설정(`.claude/plugins/`)에서 제공:
+- `supabase` - Supabase 프로젝트 관리 (SQL 실행, 마이그레이션 등)
+- `playwright` - 브라우저 E2E 테스트
+- `context7` - 라이브러리 문서 조회
