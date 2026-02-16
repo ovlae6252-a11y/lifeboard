@@ -1,5 +1,6 @@
 import { CheckCircle2, ExternalLink, Loader2 } from "lucide-react";
 
+import { MarkdownFact } from "@/components/news/markdown-fact";
 import { Card } from "@/components/ui/card";
 import { parseFacts } from "@/lib/utils/parse-facts";
 
@@ -62,9 +63,7 @@ export function FactSummaryCard({
                   className="bg-primary/60 mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full"
                   aria-hidden="true"
                 />
-                <span className="text-foreground flex-1 leading-relaxed">
-                  {fact}
-                </span>
+                <MarkdownFact content={fact} />
               </li>
             ))}
           </ul>

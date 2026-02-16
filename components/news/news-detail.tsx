@@ -1,13 +1,13 @@
-import { ArrowLeft, Calendar } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getCategoryLabel } from "@/lib/news/categories";
-import { formatRelativeTime } from "@/lib/utils/format-time";
 
 import { FactSummaryCard } from "./fact-summary-card";
 import { RelatedArticlesList } from "./related-articles-list";
+import { RelativeTime } from "./relative-time";
 
 interface NewsDetailProps {
   group: {
@@ -57,15 +57,10 @@ export function NewsDetail({ group, relatedArticles }: NewsDetailProps) {
           >
             {getCategoryLabel(group.category)}
           </Badge>
-          <span className="text-muted-foreground flex items-center gap-1.5 text-sm">
-            <Calendar className="h-3.5 w-3.5" />
-            <time dateTime={publishedAt}>
-              {formatRelativeTime(publishedAt)}
-            </time>
-          </span>
-          <span className="text-muted-foreground font-mono text-sm">
+          <RelativeTime dateTime={publishedAt} />
+          <Badge variant="outline" className="rounded-full font-mono text-xs">
             {group.article_count}개 기사
-          </span>
+          </Badge>
         </div>
 
         <h1 className="font-serif text-2xl leading-tight font-bold md:text-3xl">

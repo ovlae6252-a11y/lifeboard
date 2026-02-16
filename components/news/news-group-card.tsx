@@ -5,10 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { getCategoryLabel } from "@/lib/news/categories";
 import type { NewsGroupWithArticles } from "@/lib/news/queries";
-import { formatRelativeTime } from "@/lib/utils/format-time";
 import { getNewsImageUrl } from "@/lib/utils/news-image";
 
 import { CategoryGradient } from "./category-gradient";
+import { RelativeTime } from "./relative-time";
 
 interface NewsGroupCardProps {
   group: NewsGroupWithArticles;
@@ -64,12 +64,11 @@ export function NewsGroupCard({ group }: NewsGroupCardProps) {
           </h3>
 
           {/* 상대 시간 */}
-          <time
+          <RelativeTime
             dateTime={publishedAt}
-            className="text-muted-foreground mt-auto font-mono text-xs"
-          >
-            {formatRelativeTime(publishedAt)}
-          </time>
+            showIcon={false}
+            className="mt-auto font-mono text-xs"
+          />
         </div>
       </Card>
     </Link>

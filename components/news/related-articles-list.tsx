@@ -2,7 +2,8 @@ import { ExternalLink } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { formatRelativeTime } from "@/lib/utils/format-time";
+
+import { RelativeTime } from "./relative-time";
 
 interface RelatedArticle {
   id: string;
@@ -75,12 +76,11 @@ export function RelatedArticlesList({ articles }: RelatedArticlesListProps) {
                     </Badge>
                   )}
                   {article.published_at && (
-                    <time
+                    <RelativeTime
                       dateTime={article.published_at}
-                      className="text-muted-foreground hidden font-mono text-xs sm:block"
-                    >
-                      {formatRelativeTime(article.published_at)}
-                    </time>
+                      showIcon={false}
+                      className="hidden font-mono text-xs sm:block"
+                    />
                   )}
                 </div>
                 <h3 className="group-hover:text-primary line-clamp-2 font-serif text-sm leading-snug transition-colors">

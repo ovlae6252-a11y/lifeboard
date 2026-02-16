@@ -1,16 +1,16 @@
-import { ArrowLeft, Calendar } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import { FactSummaryCard } from "@/components/news/fact-summary-card";
 import { RelatedArticlesList } from "@/components/news/related-articles-list";
+import { RelativeTime } from "@/components/news/relative-time";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCategoryLabel } from "@/lib/news/categories";
 import { getNewsGroupDetail, getRelatedArticles } from "@/lib/news/queries";
-import { formatRelativeTime } from "@/lib/utils/format-time";
 
 export const metadata = {
   title: "뉴스 상세 | Lifeboard",
@@ -67,12 +67,7 @@ async function NewsDetailContent({
           <Badge variant="outline" className="rounded-full font-mono text-xs">
             {group.article_count}개 기사
           </Badge>
-          <span className="text-muted-foreground flex items-center gap-1.5 text-sm">
-            <Calendar className="h-3.5 w-3.5" />
-            <time dateTime={publishedAt}>
-              {formatRelativeTime(publishedAt)}
-            </time>
-          </span>
+          <RelativeTime dateTime={publishedAt} />
         </div>
 
         <h1 className="font-serif text-2xl leading-tight font-bold md:text-3xl">
