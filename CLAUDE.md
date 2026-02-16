@@ -6,16 +6,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 라이프보드(Lifeboard) - 인생의 모든 데이터를 한눈에 볼 수 있는 통합 대시보드. Next.js + Supabase 기반.
 
-- **현재 버전**: v1.1a (뉴스 UX 개선 완료 - 카드 간소화, 상세 페이지, AI 품질 관리, 콘텐츠 필터링)
-- **MVP 상태**: Phase 0~5 완료 (2026-02-16), v1.1a 완료 (2026-02-16)
+- **현재 버전**: v1.1b (사용자 경험 개선 완료 - 소셜 로그인, 검색, 북마크, 공유, 설정)
+- **MVP 상태**: Phase 0~5 완료 (2026-02-16), v1.1a 완료 (2026-02-16), v1.1b 완료 (2026-02-16)
 - **프로덕션**: https://lifeboard-omega.vercel.app
 - **GitHub**: https://github.com/ovlae6252-a11y/lifeboard
 
-**주요 기능** (v1.1a 기준):
+**주요 기능** (v1.1b 기준):
+- 소셜 로그인 (Google, Kakao OAuth 통합)
 - RSS 뉴스 자동 수집 (20+ 언론사, 하루 2회)
 - 유사 기사 그룹핑 (pg_trgm 기반, 유사도 임계값 0.5)
 - AI 팩트 요약 (Ollama qwen2.5:14b, 한국어 품질 검증)
 - 콘텐츠 필터링 (키워드 블랙리스트/화이트리스트)
+- 뉴스 검색 (pg_trgm 유사도 기반, 제목 및 요약 검색)
+- 뉴스 북마크 (최대 100개, 낙관적 UI 업데이트)
+- 뉴스 공유 (팩트 요약/링크 복사, Toast 알림)
+- 사용자 설정 (프로필 확인, 선호 카테고리 관리)
 - 뉴스 상세 페이지 (팩트 요약 + 관련 기사 목록)
 - 카테고리별 탐색 및 페이지네이션
 - 반응형 대시보드 + 다크모드
@@ -23,14 +28,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 개발 명령어
 
 ```bash
-npm run dev          # 개발 서버 (localhost:3000)
-npm run build        # 프로덕션 빌드 (Turbopack)
-npm run lint         # ESLint 실행
-npm run lint:fix     # ESLint 자동 수정
-npm run format       # Prettier 전체 포매팅
-npm run format:check # Prettier 포매팅 상태 확인
-npm run type-check   # TypeScript 타입 검사
-npx supabase db push # DB 마이그레이션 적용 (원격 Supabase)
+npm run dev             # 개발 서버 (localhost:3000)
+npm run build           # 프로덕션 빌드 (Turbopack)
+npm run lint            # ESLint 실행
+npm run lint:fix        # ESLint 자동 수정
+npm run format          # Prettier 전체 포매팅
+npm run format:check    # Prettier 포매팅 상태 확인
+npm run type-check      # TypeScript 타입 검사
+npx playwright test     # E2E 테스트 실행
+npx playwright test --ui # 테스트 UI 모드
+npx supabase db push    # DB 마이그레이션 적용 (원격 Supabase)
 ```
 
 ### 코드 품질 도구
@@ -38,6 +45,7 @@ npx supabase db push # DB 마이그레이션 적용 (원격 Supabase)
 - **Prettier** - 코드 포매터 (`printWidth: 80`, `singleQuote: false`, `trailingComma: "all"`, `prettier-plugin-tailwindcss`)
 - **ESLint** + `eslint-config-prettier` - 린터 (Prettier와 충돌 없음)
 - **Husky** + **lint-staged** - 커밋 시 `pre-commit` hook 실행. `.ts/.tsx`는 ESLint + Prettier, `.css/.json/.md`는 Prettier만 적용
+- **Playwright** - E2E 테스트 (auth setup 패턴, `playwright/.auth/user.json`에 인증 상태 저장)
 
 ## 기술 스택
 
@@ -69,30 +77,45 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
 ### 라우팅 구조
 
 - `/` - 공개 홈 페이지 (별도 인라인 헤더, protected와 다른 레이아웃)
-- `/auth/*` - 인증 플로우 (login, sign-up, forgot-password, update-password, confirm, error, sign-up-success)
-- `/auth/confirm` - 이메일 OTP 검증 Route Handler (GET). Open Redirect 방지를 위해 `next` 파라미터는 상대 경로만 허용
+- `/auth/*` - 인증 플로우 (login, error)
+- `/auth/login` - 소셜 로그인 페이지 (Google, Kakao, v1.1b)
+- `/auth/callback` - OAuth 콜백 Route Handler (GET, code 교환 → 세션 생성, v1.1b)
 - `/protected/*` - 인증 필요 페이지 (Header + Footer 공통 레이아웃, `max-w-6xl`)
 - `/protected` - 대시보드 (최신 뉴스 6개 프리뷰)
-- `/protected/news` - 뉴스 목록 페이지 (카테고리 탭 + 페이지네이션)
-- `/protected/news/[groupId]` - 뉴스 상세 페이지 (팩트 요약 + 관련 기사 목록 + 메타정보, v1.1a 추가)
+- `/protected/news` - 뉴스 목록 페이지 (카테고리 탭 + 검색바 + 페이지네이션, v1.1b 검색 추가)
+- `/protected/news/[groupId]` - 뉴스 상세 페이지 (팩트 요약 + 관련 기사 + 북마크/공유 버튼, v1.1a/v1.1b)
+- `/protected/settings` - 사용자 설정 페이지 (프로필, 선호 카테고리, v1.1b)
+- `/api/auth/dev-login` - 개발용 로그인 API (POST, 테스트 사용자 자동 생성, v1.1b)
 - `/api/news/collect` - RSS 수집 API (GET/POST, `CRON_SECRET` 인증 필요)
+- `/api/news/bookmarks` - 북마크 API (GET/POST/DELETE, 최대 100개 제한, v1.1b)
+- `/api/user/preferences` - 사용자 설정 API (GET/PUT, preferred_categories 관리, v1.1b)
 
 ### 컴포넌트 패턴
 
 - `components/ui/` - shadcn/ui 기본 컴포넌트 (`npx shadcn@latest add <name>`으로 추가)
+  - `sonner.tsx` - Toast 알림 (sonner 라이브러리, 테마 통합, v1.1b)
 - `components/layout/` - 공통 레이아웃 (header, mobile-nav, footer, nav-links 상수)
   - `header.tsx`는 Server Component. AuthButton(서버) + ThemeSwitcher/MobileNav(클라이언트) 조합
   - `footer.tsx`는 Client Component (`new Date()` 사용)
+  - `nav-links.ts` - Navigation 링크 상수 (대시보드, 뉴스, 설정, v1.1b 설정 추가)
 - `components/news/` - 뉴스 UI 컴포넌트 (Server/Client 분리)
   - **카드 컴포넌트**: `news-group-card.tsx` (간소화된 UI: 이미지 + 제목 + 메타정보, 상세 페이지 링크)
-  - **상세 페이지**: `news-detail.tsx` (레이아웃), `fact-summary-card.tsx` (팩트 요약), `related-articles-list.tsx` (관련 기사)
+  - **상세 페이지**: `news-detail.tsx` (레이아웃, 북마크/공유 버튼 통합 v1.1b), `fact-summary-card.tsx` (팩트 요약), `related-articles-list.tsx` (관련 기사)
   - **마크다운 렌더링**: `markdown-fact.tsx` (react-markdown + remark-gfm, 팩트 불릿 포인트)
   - **시간 표시**: `relative-time.tsx` (Client Component, 상대 시간 자동 갱신)
-  - **목록/탐색**: `news-list.tsx`, `news-category-tabs.tsx`, `news-pagination.tsx`
+  - **검색**: `news-search-bar.tsx` (검색 입력, URL 쿼리 파라미터 관리, v1.1b)
+  - **북마크**: `bookmark-button.tsx` (낙관적 UI 업데이트, useOptimistic, v1.1b)
+  - **공유**: `share-button.tsx` (DropdownMenu, 요약/링크 복사, Toast 알림, v1.1b)
+  - **목록/탐색**: `news-list.tsx`, `news-category-tabs.tsx` (북마크 탭 추가 v1.1b), `news-pagination.tsx`
   - **상태 표시**: `news-skeleton.tsx` (로딩), `news-empty-state.tsx` (빈 상태)
   - **대시보드**: `news-dashboard-section.tsx` (최신 뉴스 위젯)
   - **유틸리티**: `category-gradient.tsx` (카테고리별 그라디언트 스타일)
-- `components/` 루트 - 인증 관련 컴포넌트 (`auth-button.tsx`는 Server Component, 반드시 `<Suspense>` 안에서 사용)
+- `components/settings/` - 사용자 설정 컴포넌트 (v1.1b)
+  - `profile-section.tsx` - 프로필 정보 표시 (로그인 방식, 이메일, 가입일)
+  - `category-preferences.tsx` - 선호 카테고리 설정 (체크박스, 저장)
+- `components/` 루트 - 인증 관련 컴포넌트
+  - `auth-button.tsx` - Server Component, 반드시 `<Suspense>` 안에서 사용
+  - `social-login-buttons.tsx` - 소셜 로그인 버튼 (Google, Kakao, v1.1b)
 
 ### Server/Client Component 경계 규칙
 
@@ -128,7 +151,7 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
 
 ### DB 마이그레이션
 
-`supabase/migrations/`에 SQL 마이그레이션 파일 관리 (21개). `npx supabase db push`로 적용.
+`supabase/migrations/`에 SQL 마이그레이션 파일 관리. `npx supabase db push`로 적용.
 
 **테이블:**
 - `news_sources` - RSS 피드 소스 (언론사명, 피드 URL, 카테고리)
@@ -136,7 +159,9 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
 - `news_articles` - 개별 기사 (제목, URL, 소스, 그룹 연결, **`is_deleted` soft delete** v1.1a)
 - `news_fetch_logs` - 수집 로그 (소스별 성공/실패, 수집 개수, **`filtered_count` 필터링된 개수** v1.1a)
 - `summarize_jobs` - AI 요약 작업 큐 (상태: pending/processing/completed/failed)
-- **`content_filters`** - 콘텐츠 필터링 규칙 (블랙리스트/화이트리스트 키워드, v1.1a 추가)
+- `content_filters` - 콘텐츠 필터링 규칙 (블랙리스트/화이트리스트 키워드, v1.1a)
+- **`user_preferences`** - 사용자 설정 (선호 카테고리, 대시보드 설정, v1.1b)
+- **`user_bookmarks`** - 사용자 북마크 (뉴스 그룹 ID, 최대 100개 제한, v1.1b)
 
 **RPC 함수** (service_role 전용, anon/authenticated 호출 불가):
 - `find_similar_group` - 트라이그램 유사도 기반 그룹 검색
@@ -145,6 +170,8 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
 - `enqueue_summarize_jobs` - 요약 작업 일괄 등록
 - `get_top_articles_for_groups` - 그룹별 상위 N개 기사 조회 (윈도우 함수)
 - `batch_group_articles` - 배치 그룹핑 (**유사도 임계값 0.5, 72시간 범위**, v1.1a 파라미터 조정)
+- **`get_user_bookmarks`** - 북마크 목록 조회 (JOIN으로 뉴스 그룹 정보 포함, v1.1b)
+- **`search_news_groups`** - 뉴스 검색 (pg_trgm 유사도 기반, 제목 및 요약 검색, v1.1b)
 
 **제약조건:**
 - `summarize_jobs` 테이블: `(group_id) WHERE status IN ('pending', 'processing')` partial unique index로 중복 작업 방지
@@ -191,7 +218,7 @@ TEST_USER_PASSWORD=TestPass1234!@
 
 ## 개발 참고
 
-- `docs/ROADMAP.md` - 개발 로드맵 (v1.0 완료, v1.1a 완료, v1.1b 진행 예정)
+- `docs/ROADMAP.md` - 개발 로드맵 (v1.0 완료, v1.1a 완료, v1.1b 완료)
 - `docs/PRD.md` - 제품 요구사항 문서 (v2.4, 2026-02-16)
 - `docs/complete/ROADMAP_v1.0.md` - v1.0 (Phase 0~5) 아카이브
 
