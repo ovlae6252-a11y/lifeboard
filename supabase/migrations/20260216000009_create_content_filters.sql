@@ -40,7 +40,7 @@ create trigger trigger_update_content_filters_updated_at
 -- 초기 시드 데이터: 블랙리스트 키워드 (광고, 스팸성 컨텐츠)
 insert into public.content_filters (filter_type, keywords, is_active)
 values
-  ('blacklist', array['광고', '홍보', '이벤트', '할인', '쿠폰', '프로모션'], true)
+  ('blacklist', array['광고', '홍보', '이벤트', '할인', '쿠폰', '프로모션', '부고', '모집', '채용', '알바'], true)
 on conflict do nothing;
 
 -- 초기 시드 데이터: 화이트리스트 키워드 (뉴스 가치 있는 주제)

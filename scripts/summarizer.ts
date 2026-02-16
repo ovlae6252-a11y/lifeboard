@@ -40,6 +40,29 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// 한국어 비율 검증 함수 (한글 비율 70% 이상이어야 true)
+export function validateKoreanContent(text: string): boolean {
+  if (!text || text.trim().length === 0) {
+    return false;
+  }
+
+  // 한글 문자 추출 (가-힣 범위)
+  const koreanChars = text.match(/[가-힣]/g);
+  const koreanCount = koreanChars ? koreanChars.length : 0;
+
+  // 전체 문자 수 (공백 제외)
+  const totalChars = text.replace(/\s/g, "").length;
+
+  if (totalChars === 0) {
+    return false;
+  }
+
+  // 한글 비율 계산
+  const koreanRatio = koreanCount / totalChars;
+
+  return koreanRatio >= 0.7;
+}
+
 // Ollama를 사용하여 팩트 요약 생성
 // 타임아웃 120초, 최대 3회 재시도
 export async function summarize(

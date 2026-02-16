@@ -117,7 +117,8 @@ export async function getNewsGroups(options?: {
   // 1) 그룹 조회 (articles embedded join 없이)
   let query = supabase
     .from("news_article_groups")
-    .select(NEWS_GROUP_SELECT, { count: "exact" });
+    .select(NEWS_GROUP_SELECT, { count: "exact" })
+    .eq("is_valid", true);
 
   if (category && category !== "all") {
     query = query.eq("category", category);
@@ -224,6 +225,7 @@ export async function getNewsGroupDetail(groupId: string) {
     .from("news_article_groups")
     .select(NEWS_GROUP_SELECT)
     .eq("id", groupId)
+    .eq("is_valid", true)
     .maybeSingle();
 
   if (error) {

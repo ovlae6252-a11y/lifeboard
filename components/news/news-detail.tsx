@@ -80,10 +80,7 @@ export function NewsDetail({ group, relatedArticles }: NewsDetailProps) {
       />
 
       {/* 관련 기사 목록 */}
-      <RelatedArticlesList
-        articles={relatedArticles}
-        articleCount={group.article_count}
-      />
+      <RelatedArticlesList articles={relatedArticles} />
     </div>
   );
 }

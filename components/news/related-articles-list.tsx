@@ -1,6 +1,7 @@
 import { ExternalLink } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { formatRelativeTime } from "@/lib/utils/format-time";
 
 interface RelatedArticle {
@@ -13,55 +14,84 @@ interface RelatedArticle {
 
 interface RelatedArticlesListProps {
   articles: RelatedArticle[];
-  articleCount: number;
 }
 
-export function RelatedArticlesList({
-  articles,
-  articleCount,
-}: RelatedArticlesListProps) {
+/**
+ * 관련 기사 목록 컴포넌트.
+ * 그룹 내 모든 기사를 외부 링크로 표시.
+ * Server Component.
+ */
+export function RelatedArticlesList({ articles }: RelatedArticlesListProps) {
+  if (articles.length === 0) {
+    return (
+      <section aria-labelledby="related-articles-heading">
+        <h2
+          id="related-articles-heading"
+          className="mb-4 font-serif text-lg font-semibold"
+        >
+          관련 기사
+        </h2>
+        <Card className="p-6">
+          <p className="text-muted-foreground text-center">
+            관련 기사가 없습니다.
+          </p>
+        </Card>
+      </section>
+    );
+  }
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="font-serif text-lg font-semibold">
-          관련 기사 {articleCount}개
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {articles.length > 0 ? (
-          <div className="space-y-3">
-            {articles.map((article) => (
-              <a
-                key={article.id}
-                href={article.original_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:bg-accent/50 group flex items-start gap-3 rounded-lg p-3 transition-colors"
-              >
-                <div className="flex-1 space-y-1">
-                  <h4 className="group-hover:text-primary text-sm leading-snug font-medium transition-colors">
-                    {article.title}
-                  </h4>
-                  <div className="text-muted-foreground flex items-center gap-2 text-xs">
-                    <span>{article.source?.name ?? "알 수 없음"}</span>
-                    {article.published_at && (
-                      <>
-                        <span>·</span>
-                        <time dateTime={article.published_at}>
-                          {formatRelativeTime(article.published_at)}
-                        </time>
-                      </>
-                    )}
-                  </div>
+    <section aria-labelledby="related-articles-heading">
+      <div className="mb-4 flex items-center justify-between">
+        <h2
+          id="related-articles-heading"
+          className="font-serif text-lg font-semibold"
+        >
+          관련 기사
+        </h2>
+        <Badge variant="outline" className="font-mono text-xs">
+          {articles.length}개
+        </Badge>
+      </div>
+
+      <div className="space-y-3">
+        {articles.map((article) => (
+          <a
+            key={article.id}
+            href={article.original_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group block"
+          >
+            <Card className="hover:bg-accent/50 flex items-start gap-3 p-4 transition-colors">
+              <div className="min-w-0 flex-1">
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  {article.source && (
+                    <Badge
+                      variant="outline"
+                      className="text-muted-foreground rounded-full text-xs"
+                    >
+                      {article.source.name}
+                    </Badge>
+                  )}
+                  {article.published_at && (
+                    <time
+                      dateTime={article.published_at}
+                      className="text-muted-foreground hidden font-mono text-xs sm:block"
+                    >
+                      {formatRelativeTime(article.published_at)}
+                    </time>
+                  )}
                 </div>
-                <ExternalLink className="text-muted-foreground/50 group-hover:text-primary/50 mt-1 h-4 w-4 shrink-0 transition-colors" />
-              </a>
-            ))}
-          </div>
-        ) : (
-          <p className="text-muted-foreground text-sm">관련 기사가 없습니다.</p>
-        )}
-      </CardContent>
-    </Card>
+                <h3 className="group-hover:text-primary line-clamp-2 font-serif text-sm leading-snug transition-colors">
+                  {article.title}
+                </h3>
+              </div>
+              <ExternalLink className="text-muted-foreground h-4 w-4 flex-shrink-0" />
+            </Card>
+          </a>
+        ))}
+      </div>
+    </section>
   );
 }

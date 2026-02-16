@@ -41,6 +41,7 @@ export interface FetchResult {
   status: "success" | "error";
   articles_fetched: number;
   articles_new: number;
+  filtered_count?: number;
   error_message?: string;
 }
 
@@ -62,5 +63,6 @@ export interface CollectResponse {
     failed: number;
     total_new_articles: number;
     new_groups: number;
+    filtered_count?: number;
   };
 }

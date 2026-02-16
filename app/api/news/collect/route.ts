@@ -1,9 +1,11 @@
-import { updateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { cleanupOldRecords } from "@/lib/news/cleanup";
+import { shouldFilterArticle } from "@/lib/news/content-filter";
 import { logFetchResult, updateLastFetchedAt } from "@/lib/news/fetch-logger";
 import { groupArticles } from "@/lib/news/grouping";
+import { fetchOgImagesBatch } from "@/lib/news/og-image-fetcher";
 import { fetchRssFeed, toArticleInserts } from "@/lib/news/rss-fetcher";
 import { enqueueSummarizeJobs } from "@/lib/news/summarize-queue";
 import type {
@@ -29,9 +31,11 @@ function isAuthorized(request: NextRequest): boolean {
 }
 
 // 단일 소스에서 기사 수집
-async function collectFromSource(
-  source: NewsSource,
-): Promise<{ result: FetchResult; newArticles: ArticleInsert[] }> {
+async function collectFromSource(source: NewsSource): Promise<{
+  result: FetchResult;
+  newArticles: ArticleInsert[];
+  filteredCount: number;
+}> {
   try {
     const rawArticles = await fetchRssFeed(source.feed_url);
     const inserts = toArticleInserts(rawArticles, source);
@@ -47,6 +51,7 @@ async function collectFromSource(
           articles_new: 0,
         },
         newArticles: [],
+        filteredCount: 0,
       };
     }
 
@@ -68,11 +73,52 @@ async function collectFromSource(
     }
     const newInserts = inserts.filter((i) => !existingGuids.has(i.guid));
 
-    // 새 기사만 삽입
-    if (newInserts.length > 0) {
+    // 콘텐츠 필터링 (블랙리스트 키워드 제외)
+    const filterChecks = await Promise.all(
+      newInserts.map(async (article) => ({
+        article,
+        shouldFilter: await shouldFilterArticle(article.title),
+      })),
+    );
+
+    const validInserts = filterChecks
+      .filter((check) => !check.shouldFilter)
+      .map((check) => check.article);
+
+    const filteredCount = newInserts.length - validInserts.length;
+
+    // OG 이미지 파싱 (이미지가 없는 기사만)
+    const articlesWithoutImage = validInserts.filter(
+      (article) => !article.image_url,
+    );
+
+    if (articlesWithoutImage.length > 0) {
+      console.log(
+        `[OG 이미지] ${articlesWithoutImage.length}개 기사의 이미지 파싱 시작...`,
+      );
+
+      const urls = articlesWithoutImage.map((a) => a.original_url);
+      const imageMap = await fetchOgImagesBatch(urls, 10); // 10개씩 배치 처리
+
+      let successCount = 0;
+      articlesWithoutImage.forEach((article) => {
+        const ogImage = imageMap.get(article.original_url);
+        if (ogImage) {
+          article.image_url = ogImage;
+          successCount++;
+        }
+      });
+
+      console.log(
+        `[OG 이미지] ${successCount}/${articlesWithoutImage.length}개 파싱 성공`,
+      );
+    }
+
+    // 필터링 통과한 기사만 삽입
+    if (validInserts.length > 0) {
       const { error: insertError } = await supabase
         .from("news_articles")
-        .insert(newInserts);
+        .insert(validInserts);
       if (insertError) {
         throw new Error(`기사 삽입 실패: ${insertError.message}`);
       }
@@ -86,9 +132,11 @@ async function collectFromSource(
         source_name: source.name,
         status: "success",
         articles_fetched: rawArticles.length,
-        articles_new: newInserts.length,
+        articles_new: validInserts.length,
+        filtered_count: filteredCount,
       },
-      newArticles: newInserts,
+      newArticles: validInserts,
+      filteredCount,
     };
   } catch (error) {
     const detail = error instanceof Error ? error.message : "알 수 없는 오류";
@@ -107,6 +155,7 @@ async function collectFromSource(
             : "수집 중 오류가 발생했습니다.",
       },
       newArticles: [],
+      filteredCount: 0,
     };
   }
 }
@@ -157,11 +206,13 @@ async function handleCollect(request: NextRequest) {
 
   const fetchResults: FetchResult[] = [];
   const allNewArticles: ArticleInsert[] = [];
+  let totalFilteredCount = 0;
 
   for (const settled of collectResults) {
     if (settled.status === "fulfilled") {
       fetchResults.push(settled.value.result);
       allNewArticles.push(...settled.value.newArticles);
+      totalFilteredCount += settled.value.filteredCount;
     } else {
       console.error("[RSS 수집] 예상치 못한 오류:", settled.reason);
     }
@@ -180,8 +231,8 @@ async function handleCollect(request: NextRequest) {
   await Promise.allSettled(fetchResults.map((r) => logFetchResult(r)));
 
   // 뉴스 캐시 무효화 (use cache 태그 기반)
-  updateTag("news-groups");
-  updateTag("news-group-articles");
+  revalidateTag("news-groups");
+  revalidateTag("news-group-articles");
 
   // 오래된 데이터 정리 (실패해도 수집 결과에 영향 없음)
   await cleanupOldRecords();
@@ -196,6 +247,7 @@ async function handleCollect(request: NextRequest) {
       failed: fetchResults.filter((r) => r.status === "error").length,
       total_new_articles: allNewArticles.length,
       new_groups: enqueuedCount,
+      filtered_count: totalFilteredCount,
     },
   };
 

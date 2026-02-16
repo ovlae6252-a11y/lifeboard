@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { createClient } from "@supabase/supabase-js";
-import { summarize } from "./summarizer.js";
+import { summarize, validateKoreanContent } from "./summarizer.js";
 import type { ArticleForSummary } from "./summarizer.js";
 
 // 환경변수 검증
@@ -71,9 +71,52 @@ async function processJob(job: SummarizeJob): Promise<void> {
 
     log(`[작업] 기사 ${articles.length}개 조회 완료 - group=${job.group_id}`);
 
+    // description이 있는 기사가 하나도 없으면 요약 스킵
+    const hasDescription = articles.some((a) => a.description?.trim());
+    if (!hasDescription) {
+      log(
+        `[작업] 스킵 - 모든 기사의 description이 없음 - group=${job.group_id}`,
+      );
+
+      // 그룹을 is_summarized=true, is_valid=false로 표시 (요약 불가)
+      await supabase
+        .from("news_article_groups")
+        .update({
+          fact_summary: null,
+          is_summarized: true,
+          summarized_at: new Date().toISOString(),
+          is_valid: false,
+        })
+        .eq("id", job.group_id);
+
+      // 작업 완료 처리
+      await supabase
+        .from("summarize_jobs")
+        .update({
+          status: "completed",
+          completed_at: new Date().toISOString(),
+          error_message: "기사 본문(description) 없음",
+        })
+        .eq("id", job.id);
+
+      return;
+    }
+
     // Ollama 팩트 요약 생성
     const factSummary = await summarize(articles as ArticleForSummary[]);
     log(`[작업] 요약 생성 완료 - job=${job.id}`);
+
+    // 한국어 비율 검증
+    const isValidKorean = validateKoreanContent(factSummary);
+    log(
+      `[작업] 한국어 검증 ${isValidKorean ? "통과" : "실패"} - job=${job.id}`,
+    );
+
+    if (!isValidKorean) {
+      log(
+        `[작업] 한국어 비율 70% 미만 - 요약 내용: ${factSummary.slice(0, 100)}...`,
+      );
+    }
 
     // news_article_groups에 요약 결과 저장
     const { error: updateGroupError } = await supabase
@@ -82,6 +125,7 @@ async function processJob(job: SummarizeJob): Promise<void> {
         fact_summary: factSummary,
         is_summarized: true,
         summarized_at: new Date().toISOString(),
+        is_valid: isValidKorean,
       })
       .eq("id", job.group_id);
 
@@ -95,6 +139,9 @@ async function processJob(job: SummarizeJob): Promise<void> {
       .update({
         status: "completed",
         completed_at: new Date().toISOString(),
+        error_message: isValidKorean
+          ? null
+          : "한국어 비율 70% 미만 (검증 실패)",
       })
       .eq("id", job.id);
 

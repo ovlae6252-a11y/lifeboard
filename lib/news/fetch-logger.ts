@@ -10,6 +10,7 @@ export async function logFetchResult(result: FetchResult): Promise<void> {
     status: result.status,
     articles_fetched: result.articles_fetched,
     articles_new: result.articles_new,
+    filtered_count: result.filtered_count ?? 0,
     error_message: result.error_message ?? null,
   });
 

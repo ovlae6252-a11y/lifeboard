@@ -1,26 +1,30 @@
 /**
- * 뉴스 이미지 URL을 반환한다.
- * 우선순위: (1) RSS 제공 image_url -> (2) 카테고리별 기본 이미지 -> (3) 기본 플레이스홀더
+ * 뉴스 이미지 URL 폴백 유틸리티.
+ * RSS에서 제공된 image_url이 있으면 우선 사용하고,
+ * 없으면 null을 반환하여 CategoryGradient 컴포넌트로 폴백하도록 한다.
  */
-export function getNewsImageUrl(
-  imageUrl: string | null,
-  category: string,
-): string {
-  // RSS에서 제공한 이미지가 있으면 사용
-  if (imageUrl && imageUrl.trim() !== "") {
+export function getNewsImageUrl(imageUrl: string | null): string | null {
+  // RSS image_url이 유효하면 그대로 반환
+  if (imageUrl && imageUrl.trim().length > 0) {
     return imageUrl;
   }
 
-  // 카테고리별 기본 이미지 매핑
-  const categoryImages: Record<string, string> = {
-    politics: "/images/categories/politics.svg",
-    economy: "/images/categories/economy.svg",
-    society: "/images/categories/society.svg",
-    culture: "/images/categories/culture.svg",
-    science: "/images/categories/science.svg",
-    world: "/images/categories/world.svg",
-  };
+  // 이미지가 없으면 null 반환 (CategoryGradient로 폴백)
+  return null;
+}
 
-  // 카테고리별 이미지 또는 기본 플레이스홀더
-  return categoryImages[category] ?? "/images/categories/default.svg";
+/**
+ * 이미지 URL이 유효한지 검증한다.
+ */
+export function isValidImageUrl(imageUrl: string | null): boolean {
+  if (!imageUrl || imageUrl.trim().length === 0) {
+    return false;
+  }
+
+  try {
+    const url = new URL(imageUrl);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
 }
