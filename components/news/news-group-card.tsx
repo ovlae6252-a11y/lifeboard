@@ -1,123 +1,73 @@
-import { ExternalLink } from "lucide-react";
+import { Newspaper } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Card } from "@/components/ui/card";
 import { getCategoryLabel } from "@/lib/news/categories";
 import type { NewsGroupWithArticles } from "@/lib/news/queries";
 import { formatRelativeTime } from "@/lib/utils/format-time";
-import { parseFacts } from "@/lib/utils/parse-facts";
-
-// 원문 링크 최대 표시 개수
-const MAX_VISIBLE_ARTICLES = 3;
+import { getNewsImageUrl } from "@/lib/utils/news-image";
 
 interface NewsGroupCardProps {
   group: NewsGroupWithArticles;
 }
 
 export function NewsGroupCard({ group }: NewsGroupCardProps) {
-  const { representative_article: rep, articles } = group;
+  const { representative_article: rep } = group;
   const title = rep?.title ?? "제목 없음";
   const publishedAt = rep?.published_at ?? group.created_at;
-
-  // 팩트 요약 파싱
-  const hasSummary = group.is_summarized && group.fact_summary;
-  const facts = hasSummary ? parseFacts(group.fact_summary!) : [];
-
-  // 원문 링크 (최대 3개 + 나머지, null 방어)
-  const safeArticles = articles ?? [];
-  const visibleArticles = safeArticles.slice(0, MAX_VISIBLE_ARTICLES);
-  const remainingCount = Math.max(
-    0,
-    safeArticles.length - MAX_VISIBLE_ARTICLES,
-  );
+  const imageUrl = getNewsImageUrl(rep?.image_url ?? null, group.category);
 
   return (
-    <Card className="group hover:border-primary/20 transition-colors">
-      <CardHeader className="space-y-3 pb-4">
-        {/* 카테고리 배지 + 상대 시간 */}
-        <div className="flex items-center justify-between">
-          <Badge
-            variant="outline"
-            className="bg-primary/10 text-primary rounded-full border-transparent text-xs font-medium"
-          >
-            {getCategoryLabel(group.category)}
-          </Badge>
-          <time
-            dateTime={publishedAt}
-            className="text-muted-foreground font-mono text-xs"
-          >
-            {formatRelativeTime(publishedAt)}
-          </time>
-        </div>
-
-        {/* 대표 기사 제목 */}
-        <CardTitle className="line-clamp-2 font-serif text-lg leading-snug">
-          {title}
-        </CardTitle>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        {/* 팩트 요약 또는 원본 설명 */}
-        {hasSummary && facts.length > 0 ? (
-          <ul className="border-accent space-y-2 border-l-2 pl-4">
-            {facts.map((fact, i) => (
-              <li
-                key={i}
-                className="text-muted-foreground flex items-start gap-2.5 text-sm leading-relaxed"
-              >
-                <span className="bg-primary/60 mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" />
-                {fact}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-muted-foreground line-clamp-3 text-sm leading-relaxed">
-            {rep?.description ?? "요약을 처리하고 있습니다..."}
-          </p>
-        )}
-
-        <Separator />
-
-        {/* 관련 기사 원문 링크 */}
-        <div className="space-y-2.5">
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground text-xs font-medium">
-              관련 기사
-            </span>
-            <Badge
-              variant="secondary"
-              className="h-5 px-1.5 font-mono text-[10px]"
-            >
-              {group.article_count}개
-            </Badge>
+    <Link href={`/protected/news/${group.id}`}>
+      <Card className="group hover:border-primary/20 overflow-hidden transition-colors">
+        {/* 모바일: 상단 이미지, 데스크톱: 좌측 썸네일 */}
+        <div className="flex flex-col sm:flex-row">
+          {/* 이미지 영역 */}
+          <div className="bg-muted relative aspect-video w-full shrink-0 overflow-hidden sm:aspect-square sm:w-32 md:w-40">
+            <Image
+              src={imageUrl}
+              alt={title}
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              sizes="(max-width: 640px) 100vw, (max-width: 768px) 128px, 160px"
+            />
           </div>
 
-          <div className="space-y-1.5">
-            {visibleArticles.map((article) => (
-              <a
-                key={article.id}
-                href={article.original_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:bg-accent/50 flex items-center gap-2 rounded-md px-1 py-0.5 transition-colors"
+          {/* 메타정보 영역 */}
+          <div className="flex flex-1 flex-col justify-between gap-3 p-4">
+            {/* 카테고리 배지 + 상대 시간 */}
+            <div className="flex items-center gap-2">
+              <Badge
+                variant="outline"
+                className="bg-primary/10 text-primary rounded-full border-transparent text-xs font-medium"
               >
-                <span className="text-muted-foreground/70 w-14 shrink-0 truncate text-[10px]">
-                  {article.source?.name ?? "알 수 없음"}
-                </span>
-                <span className="flex-1 truncate text-sm">{article.title}</span>
-                <ExternalLink className="text-muted-foreground/50 h-3 w-3 shrink-0" />
-              </a>
-            ))}
+                {getCategoryLabel(group.category)}
+              </Badge>
+              <time
+                dateTime={publishedAt}
+                className="text-muted-foreground font-mono text-xs"
+              >
+                {formatRelativeTime(publishedAt)}
+              </time>
+            </div>
 
-            {remainingCount > 0 && (
-              <p className="text-muted-foreground/60 px-1 text-xs">
-                외 {remainingCount}개 기사
-              </p>
-            )}
+            {/* 대표 기사 제목 */}
+            <h3 className="line-clamp-2 font-serif text-base leading-snug font-semibold sm:text-lg">
+              {title}
+            </h3>
+
+            {/* 기사 수 */}
+            <div className="text-muted-foreground flex items-center gap-1.5">
+              <Newspaper className="h-3.5 w-3.5" />
+              <span className="font-mono text-xs">
+                {group.article_count}개 기사
+              </span>
+            </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </Card>
+    </Link>
   );
 }

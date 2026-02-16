@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" fill="none">
+  <rect width="320" height="180" fill="#7c2d12"/>
+  <circle cx="140" cy="70" r="15" fill="white" opacity="0.2"/>
+  <circle cx="160" cy="70" r="15" fill="white" opacity="0.25"/>
+  <circle cx="180" cy="70" r="15" fill="white" opacity="0.2"/>
+  <path d="M125 85c0 25 20 35 35 35s35-10 35-35" fill="white" opacity="0.15"/>
+  <text x="160" y="145" font-family="system-ui" font-size="16" fill="white" text-anchor="middle" opacity="0.8">사회</text>
+</svg>
