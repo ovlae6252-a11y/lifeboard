@@ -1,13 +1,36 @@
-import { FolderOpen, Newspaper } from "lucide-react";
+import { FolderOpen, Newspaper, SearchX } from "lucide-react";
 
 import { getCategoryLabel } from "@/lib/news/categories";
 
 interface NewsEmptyStateProps {
   /** 카테고리 값 - 없거나 "all"이면 전체 빈 상태, 있으면 카테고리별 빈 상태 */
   category?: string;
+  /** 검색 쿼리 - 있으면 검색 결과 빈 상태 */
+  query?: string;
 }
 
-export function NewsEmptyState({ category }: NewsEmptyStateProps) {
+export function NewsEmptyState({ category, query }: NewsEmptyStateProps) {
+  // 검색 결과 빈 상태
+  if (query) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
+        <SearchX className="text-muted-foreground/40 h-12 w-12" />
+        <p className="text-lg font-semibold">
+          &quot;{query}&quot; 검색 결과가 없습니다
+        </p>
+        <div>
+          <p className="text-muted-foreground text-sm">
+            다른 키워드로 검색해 보세요
+          </p>
+          {category && category !== "all" && (
+            <p className="text-muted-foreground/70 text-xs">
+              또는 전체 카테고리에서 검색해 보세요
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
   // 전체 빈 상태
   if (!category || category === "all") {
     return (

@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       content_filters: {
@@ -263,6 +288,62 @@ export type Database = {
           },
         ]
       }
+      user_bookmarks: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_bookmarks_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "news_article_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_preferences: {
+        Row: {
+          dashboard_config: Json
+          email_digest_enabled: boolean
+          preferred_categories: Json
+          updated_at: string
+          user_id: string
+          weather_location: string
+        }
+        Insert: {
+          dashboard_config?: Json
+          email_digest_enabled?: boolean
+          preferred_categories?: Json
+          updated_at?: string
+          user_id: string
+          weather_location?: string
+        }
+        Update: {
+          dashboard_config?: Json
+          email_digest_enabled?: boolean
+          preferred_categories?: Json
+          updated_at?: string
+          user_id?: string
+          weather_location?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -307,9 +388,42 @@ export type Database = {
           title: string
         }[]
       }
+      get_user_bookmarks: {
+        Args: { p_limit?: number; p_offset?: number; p_user_id: string }
+        Returns: {
+          article_count: number
+          articles: Json
+          bookmarked_at: string
+          category: string
+          created_at: string
+          fact_summary: string
+          id: string
+          is_summarized: boolean
+          representative_article: Json
+        }[]
+      }
       increment_article_count: {
         Args: { p_group_id: string }
         Returns: undefined
+      }
+      search_news_groups: {
+        Args: {
+          p_category?: string
+          p_limit?: number
+          p_offset?: number
+          p_query: string
+        }
+        Returns: {
+          article_count: number
+          articles: Json
+          category: string
+          created_at: string
+          fact_summary: string
+          id: string
+          is_summarized: boolean
+          match_score: number
+          representative_article: Json
+        }[]
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
@@ -441,6 +555,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },

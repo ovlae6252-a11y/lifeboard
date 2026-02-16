@@ -16,13 +16,8 @@ export async function AuthButton() {
       <LogoutButton />
     </div>
   ) : (
-    <div className="flex gap-2">
-      <Button asChild size="sm" variant="outline">
-        <Link href="/auth/login">로그인</Link>
-      </Button>
-      <Button asChild size="sm">
-        <Link href="/auth/sign-up">회원가입</Link>
-      </Button>
-    </div>
+    <Button asChild size="sm" variant="outline">
+      <Link href="/auth/login">로그인</Link>
+    </Button>
   );
 }
