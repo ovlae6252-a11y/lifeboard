@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      content_filters: {
+        Row: {
+          created_at: string
+          filter_type: string
+          id: string
+          is_active: boolean
+          keywords: string[]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          filter_type: string
+          id?: string
+          is_active?: boolean
+          keywords: string[]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          filter_type?: string
+          id?: string
+          is_active?: boolean
+          keywords?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       news_article_groups: {
         Row: {
           article_count: number
@@ -22,6 +49,7 @@ export type Database = {
           fact_summary: string | null
           id: string
           is_summarized: boolean
+          is_valid: boolean
           representative_article_id: string | null
           summarized_at: string | null
         }
@@ -32,6 +60,7 @@ export type Database = {
           fact_summary?: string | null
           id?: string
           is_summarized?: boolean
+          is_valid?: boolean
           representative_article_id?: string | null
           summarized_at?: string | null
         }
@@ -42,6 +71,7 @@ export type Database = {
           fact_summary?: string | null
           id?: string
           is_summarized?: boolean
+          is_valid?: boolean
           representative_article_id?: string | null
           summarized_at?: string | null
         }
@@ -65,6 +95,7 @@ export type Database = {
           guid: string
           id: string
           image_url: string | null
+          is_deleted: boolean
           original_url: string
           published_at: string | null
           source_id: string
@@ -80,6 +111,7 @@ export type Database = {
           guid: string
           id?: string
           image_url?: string | null
+          is_deleted?: boolean
           original_url: string
           published_at?: string | null
           source_id: string
@@ -95,6 +127,7 @@ export type Database = {
           guid?: string
           id?: string
           image_url?: string | null
+          is_deleted?: boolean
           original_url?: string
           published_at?: string | null
           source_id?: string
@@ -124,6 +157,7 @@ export type Database = {
           articles_new: number
           created_at: string
           error_message: string | null
+          filtered_count: number
           id: string
           source_id: string
           status: string
@@ -133,6 +167,7 @@ export type Database = {
           articles_new?: number
           created_at?: string
           error_message?: string | null
+          filtered_count?: number
           id?: string
           source_id: string
           status: string
@@ -142,6 +177,7 @@ export type Database = {
           articles_new?: number
           created_at?: string
           error_message?: string | null
+          filtered_count?: number
           id?: string
           source_id?: string
           status?: string
@@ -235,8 +271,8 @@ export type Database = {
       batch_group_articles: {
         Args: {
           p_articles: Json
-          p_similarity_threshold?: number
           p_hours_range?: number
+          p_similarity_threshold?: number
         }
         Returns: {
           article_id: string
@@ -244,15 +280,9 @@ export type Database = {
           is_new_group: boolean
         }[]
       }
-      cleanup_old_records: {
-        Args: Record<string, never>
-        Returns: Json
-      }
+      cleanup_old_records: { Args: never; Returns: Json }
       enqueue_summarize_jobs: {
-        Args: {
-          p_group_ids: string[]
-          p_requested_by?: string
-        }
+        Args: { p_group_ids: string[]; p_requested_by?: string }
         Returns: number
       }
       find_similar_group: {
@@ -268,16 +298,13 @@ export type Database = {
         }[]
       }
       get_top_articles_for_groups: {
-        Args: {
-          p_group_ids: string[]
-          p_limit_per_group?: number
-        }
+        Args: { p_group_ids: string[]; p_limit_per_group?: number }
         Returns: {
           group_id: string
           id: string
-          title: string
           original_url: string
-          source_name: string | null
+          source_name: string
+          title: string
         }[]
       }
       increment_article_count: {
