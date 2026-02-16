@@ -52,3 +52,4 @@ CLAUDE.md
 # MCP 서버 데이터
 .playwright-mcp/
 shrimp_data/
+test-screenshots/
