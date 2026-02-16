@@ -1,16 +1,8 @@
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-import { BookmarkButton } from "@/components/news/bookmark-button";
-import { FactSummaryCard } from "@/components/news/fact-summary-card";
-import { RelatedArticlesList } from "@/components/news/related-articles-list";
-import { RelativeTime } from "@/components/news/relative-time";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { NewsDetail } from "@/components/news/news-detail";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getCategoryLabel } from "@/lib/news/categories";
 import { getNewsGroupDetail, getRelatedArticles } from "@/lib/news/queries";
 import { createClient } from "@/lib/supabase/server";
 
@@ -41,75 +33,28 @@ async function NewsDetailContent({
   // 관련 기사 조회
   const articles = await getRelatedArticles(groupId);
 
-  // 사용자 북마크 상태 확인
+  // 사용자 북마크 목록 조회
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  let isBookmarked = false;
+  let userBookmarks: string[] = [];
   if (user) {
     const { data: bookmarkData } = await supabase
       .from("user_bookmarks")
       .select("group_id")
-      .eq("user_id", user.id)
-      .eq("group_id", groupId)
-      .maybeSingle();
+      .eq("user_id", user.id);
 
-    isBookmarked = !!bookmarkData;
+    userBookmarks = bookmarkData?.map((b) => b.group_id) ?? [];
   }
 
-  const title = group.representative_article?.title ?? "제목 없음";
-  const publishedAt =
-    group.representative_article?.published_at ?? group.created_at;
-
   return (
-    <div className="space-y-6">
-      {/* 뒤로가기 버튼 */}
-      <div>
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/protected/news" className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            뉴스 목록
-          </Link>
-        </Button>
-      </div>
-
-      {/* 헤더: 제목 + 메타정보 */}
-      <div className="space-y-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge
-            variant="outline"
-            className="bg-primary/10 text-primary rounded-full border-transparent"
-          >
-            {getCategoryLabel(group.category)}
-          </Badge>
-          <Badge variant="outline" className="rounded-full font-mono text-xs">
-            {group.article_count}개 기사
-          </Badge>
-          <RelativeTime dateTime={publishedAt} />
-          <BookmarkButton
-            groupId={groupId}
-            isBookmarked={isBookmarked}
-            size="sm"
-            variant="outline"
-          />
-        </div>
-
-        <h1 className="font-serif text-2xl leading-tight font-bold md:text-3xl">
-          {title}
-        </h1>
-      </div>
-
-      {/* 팩트 요약 */}
-      <FactSummaryCard
-        factSummary={group.fact_summary}
-        isSummarized={group.is_summarized}
-      />
-
-      {/* 관련 기사 목록 */}
-      <RelatedArticlesList articles={articles} />
-    </div>
+    <NewsDetail
+      group={group}
+      relatedArticles={articles}
+      userBookmarks={userBookmarks}
+    />
   );
 }
 

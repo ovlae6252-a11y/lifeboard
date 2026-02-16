@@ -1,6 +1,7 @@
 "use client";
 
 import { Newspaper } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
@@ -33,10 +34,12 @@ export function NewsGroupCard({ group, userBookmarks }: NewsGroupCardProps) {
           {/* 이미지 영역 */}
           <div className="bg-muted relative aspect-video w-full shrink-0 overflow-hidden md:aspect-[4/3] md:w-48">
             {imageUrl ? (
-              <img
+              <Image
                 src={imageUrl}
                 alt={title}
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                fill
+                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                sizes="(max-width: 768px) 100vw, 192px"
               />
             ) : (
               <CategoryGradient

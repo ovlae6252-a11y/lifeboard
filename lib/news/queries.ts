@@ -333,10 +333,9 @@ export async function getUserBookmarkedGroups(
   page: number = 1,
   limit: number = 20,
 ): Promise<NewsGroupsResult> {
-  // TODO: "use cache" 캐싱 활성화 (현재 revalidateTag 호환성 이슈로 비활성화)
-  // "use cache";
-  // cacheLife({ stale: 300, revalidate: 3600, expire: 86400 });
-  // cacheTag("user-bookmarks", userId);
+  "use cache";
+  cacheLife({ stale: 60, revalidate: 300, expire: 3600 });
+  cacheTag("user-bookmarks", userId);
 
   const supabase = createAdminClient();
   const offset = (page - 1) * limit;
@@ -360,6 +359,6 @@ export async function getUserBookmarkedGroups(
   }
 
   // get_user_bookmarks RPC는 이미 articles를 JSONB로 포함하여 반환
-  const groups = (data ?? []) as NewsGroupWithArticles[];
+  const groups = (data ?? []) as unknown as NewsGroupWithArticles[];
   return { groups, count: totalCount ?? 0 };
 }

@@ -9,6 +9,7 @@ import { BookmarkButton } from "./bookmark-button";
 import { FactSummaryCard } from "./fact-summary-card";
 import { RelatedArticlesList } from "./related-articles-list";
 import { RelativeTime } from "./relative-time";
+import { ShareButton } from "./share-button";
 
 interface NewsDetailProps {
   group: {
@@ -74,6 +75,10 @@ export function NewsDetail({
             isBookmarked={isBookmarked}
             size="sm"
             variant="outline"
+          />
+          <ShareButton
+            groupId={group.id}
+            factSummary={group.fact_summary ?? "요약 정보가 없습니다."}
           />
         </div>
 

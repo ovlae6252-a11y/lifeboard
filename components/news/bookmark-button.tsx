@@ -2,6 +2,7 @@
 
 import { Bookmark, BookmarkCheck } from "lucide-react";
 import { useOptimistic, useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 
@@ -56,8 +57,8 @@ export function BookmarkButton({
       // 성공 시 실제 상태 업데이트
       setIsBookmarked(newBookmarkedState);
 
-      // 성공 메시지 (임시로 console.log, 다음 태스크에서 toast로 교체)
-      console.log(
+      // 성공 메시지
+      toast.success(
         newBookmarkedState
           ? "북마크에 추가되었습니다"
           : "북마크가 제거되었습니다",
@@ -66,10 +67,8 @@ export function BookmarkButton({
       // 실패 시 롤백
       setOptimisticBookmarked(isBookmarked);
 
-      // 에러 메시지 (임시로 console.error, 다음 태스크에서 toast로 교체)
-      console.error(
-        error instanceof Error ? error.message : "북마크 처리 실패",
-      );
+      // 에러 메시지
+      toast.error(error instanceof Error ? error.message : "북마크 처리 실패");
     }
   };
 
