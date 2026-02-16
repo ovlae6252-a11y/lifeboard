@@ -20,7 +20,7 @@ const authFile = "playwright/.auth/user.json";
 setup("authenticate", async ({ page }) => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const testEmail = "test-social@lifeboard.dev";
+  const testEmail = process.env.TEST_USER_EMAIL || "test@lifeboard.dev";
 
   if (!supabaseUrl || !serviceRoleKey) {
     throw new Error(
@@ -43,11 +43,8 @@ setup("authenticate", async ({ page }) => {
   if (!userExists) {
     const { error: createError } = await supabase.auth.admin.createUser({
       email: testEmail,
+      password: process.env.TEST_USER_PASSWORD || "TestPass1234!@",
       email_confirm: true,
-      user_metadata: {
-        provider: "google",
-        full_name: "Test User",
-      },
     });
 
     if (createError) {
@@ -79,6 +76,16 @@ setup("authenticate", async ({ page }) => {
     throw new Error("매직링크에서 토큰을 가져올 수 없습니다");
   }
 
+  // 토큰을 사용하여 사용자 정보 가져오기
+  const { data: userData, error: userError } =
+    await supabase.auth.getUser(accessToken);
+
+  if (userError || !userData?.user) {
+    throw new Error(
+      `사용자 정보 가져오기 실패: ${userError?.message || "Unknown error"}`,
+    );
+  }
+
   // 세션 데이터 구성
   const sessionData = {
     access_token: accessToken,
@@ -87,7 +94,7 @@ setup("authenticate", async ({ page }) => {
     expires_in: 3600,
     token_type: "bearer",
     user: {
-      id: "df15eb2c-3691-4a4c-b2ce-a97fa7fb3a3f",
+      id: userData.user.id,
       email: testEmail,
       role: "authenticated",
       aud: "authenticated",

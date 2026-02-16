@@ -9,12 +9,17 @@ import { createClient } from "@/lib/supabase/server";
  * 테스트 사용자가 없으면 자동 생성
  */
 export async function POST(request: NextRequest) {
-  // 프로덕션에서는 비활성화
-  if (process.env.NODE_ENV !== "development") {
-    return NextResponse.json(
-      { error: "개발 환경에서만 사용 가능합니다" },
-      { status: 403 },
-    );
+  // 프로덕션에서는 비활성화 (VERCEL_ENV로 검증)
+  if (process.env.VERCEL_ENV === "production") {
+    return NextResponse.json({ error: "Not Found" }, { status: 404 });
+  }
+
+  // 추가 안전장치: NODE_ENV로도 검증
+  if (
+    process.env.NODE_ENV !== "development" &&
+    process.env.ALLOW_DEV_LOGIN !== "true"
+  ) {
+    return NextResponse.json({ error: "Not Found" }, { status: 404 });
   }
 
   try {

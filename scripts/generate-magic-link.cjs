@@ -16,7 +16,7 @@ envContent.split('\n').forEach(line => {
 
 const supabaseUrl = envVars.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = envVars.SUPABASE_SERVICE_ROLE_KEY;
-const testEmail = 'test-social@lifeboard.dev';
+const testEmail = envVars.TEST_USER_EMAIL || 'test@lifeboard.dev';
 
 if (!supabaseUrl || !serviceRoleKey) {
   console.error('Missing environment variables');
