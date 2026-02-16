@@ -4,12 +4,15 @@
 
 MVP 단계에서는 한국 주요 언론사 RSS 뉴스 수집, AI 기반 팩트 요약, 카테고리별 뉴스 탐색 기능에 집중합니다.
 
+**프로덕션**: https://lifeboard-omega.vercel.app
+
 ## 주요 기능
 
-- **RSS 뉴스 자동 수집** - 한국 주요 언론사 13개 피드에서 뉴스를 자동 수집 (하루 2회)
-- **유사 기사 그룹핑** - 트라이그램 유사도 기반으로 같은 사안의 기사를 자동 그룹화
+- **RSS 뉴스 자동 수집** - 한국 주요 언론사 13개 피드에서 뉴스를 자동 수집 (하루 2회, KST 8시/20시)
+- **유사 기사 그룹핑** - pg_trgm 트라이그램 유사도 기반으로 같은 사안의 기사를 자동 그룹화
 - **AI 팩트 요약** - Ollama(qwen2.5:14b)를 활용하여 핵심 팩트를 불릿 포인트로 요약
 - **카테고리별 탐색** - 정치, 경제, 사회, 생활/문화, IT/과학, 세계 6개 카테고리 필터
+- **페이지네이션** - URL 기반 페이지네이션 (페이지당 20개)
 - **반응형 대시보드** - 데스크톱/모바일 반응형 레이아웃, 다크모드 지원
 - **이메일 인증** - Supabase Auth 기반 이메일 OTP 회원가입/로그인
 
@@ -21,6 +24,7 @@ MVP 단계에서는 한국 주요 언론사 RSS 뉴스 수집, AI 기반 팩트 
 | UI         | React 19, Tailwind CSS 4, shadcn/ui (new-york), Radix UI |
 | 백엔드     | Supabase (PostgreSQL, Auth, RLS, RPC, Realtime)          |
 | AI 요약    | Ollama (qwen2.5:14b, 로컬 LLM)                           |
+| 코드 품질  | Prettier, ESLint, Husky + lint-staged                    |
 | 배포       | Vercel (Cron 작업 포함)                                  |
 
 ## 아키텍처
@@ -114,6 +118,10 @@ npm start
 npm run dev          # 개발 서버 (localhost:3000)
 npm run build        # 프로덕션 빌드 (Turbopack)
 npm run lint         # ESLint
+npm run lint:fix     # ESLint 자동 수정
+npm run format       # Prettier 전체 포매팅
+npm run format:check # Prettier 포매팅 상태 확인
+npm run type-check   # TypeScript 타입 검사
 npx supabase db push # DB 마이그레이션 적용 (원격 Supabase)
 ```
 
@@ -121,23 +129,41 @@ npx supabase db push # DB 마이그레이션 적용 (원격 Supabase)
 
 ```
 app/
-  api/news/collect/   # RSS 수집 API (Vercel Cron + 수동 호출)
-  auth/               # 인증 플로우 (로그인, 회원가입, 비밀번호 재설정)
-  protected/          # 인증 필요 페이지 (대시보드, 뉴스)
+  api/news/collect/     # RSS 수집 API (Vercel Cron + 수동 호출)
+  auth/                 # 인증 플로우 (로그인, 회원가입, 비밀번호 재설정)
+  protected/            # 인증 필요 페이지
+    page.tsx            #   대시보드 (최신 뉴스 6개)
+    news/page.tsx       #   뉴스 목록 (카테고리 필터 + 페이지네이션)
 components/
-  layout/             # 공통 레이아웃 (헤더, 모바일 네비게이션, 푸터)
-  news/               # 뉴스 UI 컴포넌트 (카드, 탭, 목록, 스켈레톤)
-  ui/                 # shadcn/ui 컴포넌트
+  layout/               # 공통 레이아웃 (헤더, 모바일 네비게이션, 푸터)
+  news/                 # 뉴스 UI 컴포넌트
+    news-group-card.tsx  #   뉴스 그룹 카드 (팩트 요약, 원문 링크)
+    news-category-tabs.tsx # 카테고리 탭 필터
+    news-list.tsx        #   뉴스 카드 그리드
+    news-pagination.tsx  #   페이지네이션
+    news-skeleton.tsx    #   로딩 스켈레톤
+    news-empty-state.tsx #   빈 상태 안내
+    news-dashboard-section.tsx # 대시보드 뉴스 섹션
+  ui/                   # shadcn/ui 컴포넌트
 lib/
-  news/               # 뉴스 파이프라인 (RSS 파싱, 그룹핑, 요약 큐, 프론트엔드 쿼리)
-  supabase/           # Supabase 클라이언트 (server, client, proxy, admin, env)
-  utils/              # 유틸리티 (상대 시간 포맷, 팩트 파싱)
-scripts/              # Ollama PC 워커 (독립 패키지)
+  news/                 # 뉴스 파이프라인
+    rss-fetcher.ts      #   RSS 피드 파싱
+    normalize-title.ts  #   제목 정규화 (태그 제거, 정규화)
+    grouping.ts         #   트라이그램 유사도 그룹핑
+    summarize-queue.ts  #   요약 작업 큐 생성
+    cleanup.ts          #   오래된 레코드 정리
+    fetch-logger.ts     #   수집 로그 기록
+    queries.ts          #   프론트엔드 데이터 페칭
+    categories.ts       #   카테고리 상수
+    types.ts            #   타입 정의
+  supabase/             # Supabase 클라이언트 (server, client, proxy, admin, env)
+  utils/                # 유틸리티 (상대 시간 포맷, 팩트 파싱)
+scripts/                # Ollama PC 워커 (독립 패키지)
 supabase/
-  migrations/         # DB 마이그레이션 SQL 파일 (11개)
+  migrations/           # DB 마이그레이션 SQL 파일 (16개)
 docs/
-  PRD.md              # 제품 요구사항
-  ROADMAP.md          # 개발 로드맵
+  PRD.md                # 제품 요구사항
+  ROADMAP.md            # 개발 로드맵
 ```
 
 ## 데이터베이스 스키마
@@ -150,6 +176,17 @@ docs/
 | `news_fetch_logs`     | 수집 로그 (소스별 성공/실패, 수집 개수)                     |
 | `summarize_jobs`      | AI 요약 작업 큐 (상태: pending/processing/completed/failed) |
 
+### RPC 함수
+
+| 함수                          | 설명                                              |
+| ----------------------------- | ------------------------------------------------- |
+| `find_similar_group`          | 트라이그램 유사도 기반 그룹 검색                  |
+| `increment_article_count`     | 그룹 기사 수 갱신                                 |
+| `cleanup_old_records`         | 오래된 로그/작업 정리 (90일 로그, 30일 완료 작업) |
+| `enqueue_summarize_jobs`      | 요약 작업 일괄 등록                               |
+| `get_top_articles_for_groups` | 그룹별 상위 N개 기사 조회                         |
+| `batch_group_articles`        | 배치 그룹핑 (유사도 기반, 단일 트랜잭션)          |
+
 ## 개발 진행 상황
 
 - [x] **Phase 0** - 프로젝트 기반 정비, 브랜딩, 공통 레이아웃
@@ -157,7 +194,7 @@ docs/
 - [x] **Phase 2** - Ollama PC 워커
 - [x] **Phase 3** - 프론트엔드 뉴스 표시
 - [x] **Phase 4** - 페이지네이션 + UX 개선
-- [ ] **Phase 5** - 통합 테스트 + 배포 준비
+- [x] **Phase 5** - 통합 테스트 + 배포 준비
 
 ## 문서
 
