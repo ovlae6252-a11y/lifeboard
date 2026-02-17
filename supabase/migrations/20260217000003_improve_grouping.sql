@@ -304,10 +304,9 @@ set representative_article_id = (
 )
 where g.article_count >= 2;
 
--- 5-C: 빈 그룹 삭제 (article_count = 0이고 대표 기사도 없는 그룹)
+-- 5-C: 빈 그룹 삭제 (article_count = 0인 그룹, 대표 기사 유무 무관)
 delete from news_article_groups
-where article_count = 0
-  and representative_article_id is null;
+where article_count = 0;
 
 -- ============================================================
 -- 6. Ollama 재요약 작업 등록
