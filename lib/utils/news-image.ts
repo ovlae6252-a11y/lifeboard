@@ -1,10 +1,27 @@
 /**
  * Hotlink 방지가 있는 도메인 목록
  * 이 도메인들의 이미지는 API Route 프록시를 통해 가져옵니다.
+ * 한국 주요 언론사는 대부분 Referer 검증을 하므로 전체 프록시 처리합니다.
  */
 const PROXY_REQUIRED_DOMAINS = [
   "yna.co.kr", // 연합뉴스
   "yonhapnews.co.kr", // 연합뉴스 (구 도메인)
+  "chosun.com", // 조선일보
+  "hani.co.kr", // 한겨레
+  "sbs.co.kr", // SBS
+  "jtbc.co.kr", // JTBC
+  "hankyung.com", // 한국경제
+  "mk.co.kr", // 매일경제
+  "khan.co.kr", // 경향신문
+  "sedaily.com", // 서울경제
+  "joins.com", // 중앙일보 (구 도메인)
+  "joongang.co.kr", // 중앙일보
+  "seoul.co.kr", // 서울신문
+  "kbs.co.kr", // KBS
+  "imbc.com", // MBC
+  "donga.com", // 동아일보
+  "etnews.com", // 전자신문
+  "zdnet.co.kr", // ZDNet Korea
 ];
 
 /**

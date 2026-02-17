@@ -31,6 +31,10 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "**.hani.co.kr",
+      },
+      {
+        protocol: "https",
         hostname: "*.khan.co.kr",
       },
       {
