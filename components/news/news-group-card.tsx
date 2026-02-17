@@ -3,6 +3,7 @@
 import { Newspaper } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -26,6 +27,10 @@ export function NewsGroupCard({ group, userBookmarks }: NewsGroupCardProps) {
   const publishedAt = rep?.published_at ?? group.created_at;
   const imageUrl = getNewsImageUrl(rep?.image_url ?? null);
   const isBookmarked = userBookmarks.includes(group.id);
+  const [imgError, setImgError] = useState(false);
+
+  // API 프록시 경로인지 확인 (Next.js 이미지 최적화 우회 필요)
+  const isProxyImage = imageUrl?.startsWith("/api/image-proxy") ?? false;
 
   return (
     <div className="group relative">
@@ -33,13 +38,15 @@ export function NewsGroupCard({ group, userBookmarks }: NewsGroupCardProps) {
         <Card className="hover:border-primary/30 flex flex-col gap-0 overflow-hidden transition-all hover:shadow-md md:flex-row">
           {/* 이미지 영역 */}
           <div className="bg-muted relative aspect-video w-full shrink-0 overflow-hidden md:aspect-[4/3] md:w-48">
-            {imageUrl ? (
+            {imageUrl && !imgError ? (
               <Image
                 src={imageUrl}
                 alt={title}
                 fill
+                unoptimized={isProxyImage}
                 className="object-cover transition-transform duration-300 group-hover:scale-105"
                 sizes="(max-width: 768px) 100vw, 192px"
+                onError={() => setImgError(true)}
               />
             ) : (
               <CategoryGradient

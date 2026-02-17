@@ -53,6 +53,30 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "*.zdnet.co.kr",
       },
+      {
+        protocol: "https",
+        hostname: "*.sbs.co.kr",
+      },
+      {
+        protocol: "https",
+        hostname: "*.jtbc.co.kr",
+      },
+      {
+        protocol: "https",
+        hostname: "*.kbs.co.kr",
+      },
+      {
+        protocol: "https",
+        hostname: "*.imbc.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.seoul.co.kr",
+      },
+      {
+        protocol: "https",
+        hostname: "*.joongang.co.kr",
+      },
       // CDN 및 일반적인 이미지 호스팅
       {
         protocol: "https",
