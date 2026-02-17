@@ -286,7 +286,7 @@ export async function searchNewsGroups(
   const supabase = createAdminClient();
   const offset = (page - 1) * limit;
 
-  const { data, error, count } = await supabase.rpc("search_news_groups", {
+  const { data, error } = await supabase.rpc("search_news_groups", {
     p_query: query,
     p_category: category,
     p_limit: limit,
@@ -298,29 +298,18 @@ export async function searchNewsGroups(
     return { groups: [], count: 0 };
   }
 
-  const rawGroups = (data ?? []) as NewsGroupRaw[];
-  if (rawGroups.length === 0) {
-    return { groups: [], count: count ?? 0 };
-  }
+  // SQL이 이미 articles + total_count를 반환하므로 NewsGroupWithArticles로 타입 캐스팅
+  const groups = (data ?? []) as unknown as NewsGroupWithArticles[];
 
-  // RPC로 그룹별 상위 기사 조회
-  const groupIds = rawGroups.map((g) => g.id);
-  const { data: articleRows, error: rpcError } = await supabase.rpc(
-    "get_top_articles_for_groups",
-    { p_group_ids: groupIds, p_limit_per_group: 4 },
-  );
-
-  if (rpcError) {
-    console.error("검색 결과 기사 RPC 조회 실패:", rpcError.message);
-    return {
-      groups: rawGroups.map((g) => ({ ...g, articles: [] })),
-      count: count ?? 0,
-    };
-  }
+  // total_count 추출 (모든 행에 동일한 값이므로 첫 번째 행에서 가져옴)
+  const firstGroup = groups[0] as
+    | (NewsGroupWithArticles & { total_count?: number })
+    | undefined;
+  const totalCount = firstGroup?.total_count ?? 0;
 
   return {
-    groups: attachArticlesToGroups(rawGroups, articleRows ?? []),
-    count: count ?? 0,
+    groups,
+    count: totalCount,
   };
 }
 
