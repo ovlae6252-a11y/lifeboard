@@ -220,12 +220,13 @@ async function handleCollect(request: NextRequest) {
 
   // 그룹핑
   const groupingResults = await groupArticles(allNewArticles);
-  const newGroupIds = groupingResults
-    .filter((g) => g.is_new_group)
-    .map((g) => g.group_id);
 
-  // 요약 작업 큐 등록
-  const enqueuedCount = await enqueueSummarizeJobs(newGroupIds);
+  // 새 그룹 + 기사가 추가된 기존 그룹 모두 요약 큐 등록
+  // (partial unique index가 pending/processing 중복 방지)
+  const allAffectedGroupIds = [
+    ...new Set(groupingResults.map((g) => g.group_id)),
+  ];
+  const enqueuedCount = await enqueueSummarizeJobs(allAffectedGroupIds);
 
   // 수집 로그 기록
   await Promise.allSettled(fetchResults.map((r) => logFetchResult(r)));

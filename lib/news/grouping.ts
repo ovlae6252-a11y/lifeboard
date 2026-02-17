@@ -2,8 +2,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { ArticleInsert, GroupingResult } from "./types";
 
 // 그룹핑 설정
-const SIMILARITY_THRESHOLD = 0.6;
-const HOURS_RANGE = 48;
+const SIMILARITY_THRESHOLD = 0.4;
+const HOURS_RANGE = 96;
 const BATCH_SIZE = 50;
 
 // 기사 그룹핑: 유사 제목 기사를 같은 그룹으로 묶음
