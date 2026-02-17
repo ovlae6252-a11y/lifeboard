@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       content_filters: {
@@ -63,6 +38,33 @@ export type Database = {
           is_active?: boolean
           keywords?: string[]
           updated_at?: string
+        }
+        Relationships: []
+      }
+      grouping_jobs: {
+        Row: {
+          article_ids: string[]
+          created_at: string
+          error_message: string | null
+          id: string
+          processed_at: string | null
+          status: string
+        }
+        Insert: {
+          article_ids: string[]
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          processed_at?: string | null
+          status?: string
+        }
+        Update: {
+          article_ids?: string[]
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          processed_at?: string | null
+          status?: string
         }
         Relationships: []
       }
@@ -406,6 +408,10 @@ export type Database = {
         Args: { p_group_id: string }
         Returns: undefined
       }
+      merge_groups: {
+        Args: { p_source_ids: string[]; p_target_id: string }
+        Returns: undefined
+      }
       search_news_groups: {
         Args: {
           p_category?: string
@@ -423,6 +429,7 @@ export type Database = {
           is_summarized: boolean
           match_score: number
           representative_article: Json
+          total_count: number
         }[]
       }
       show_limit: { Args: never; Returns: number }
@@ -555,9 +562,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },

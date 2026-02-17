@@ -5,6 +5,7 @@ import { cleanupOldRecords } from "@/lib/news/cleanup";
 import { shouldFilterArticle } from "@/lib/news/content-filter";
 import { logFetchResult, updateLastFetchedAt } from "@/lib/news/fetch-logger";
 import { groupArticles } from "@/lib/news/grouping";
+import { enqueueGroupingJob } from "@/lib/news/grouping-queue";
 import { fetchOgImagesBatch } from "@/lib/news/og-image-fetcher";
 import { fetchRssFeed, toArticleInserts } from "@/lib/news/rss-fetcher";
 import { enqueueSummarizeJobs } from "@/lib/news/summarize-queue";
@@ -218,7 +219,7 @@ async function handleCollect(request: NextRequest) {
     }
   }
 
-  // 그룹핑
+  // 그룹핑 (pg_trgm 초기 그룹핑 - 즉시 표시용)
   const groupingResults = await groupArticles(allNewArticles);
 
   // 새 그룹 + 기사가 추가된 기존 그룹 모두 요약 큐 등록
@@ -227,6 +228,10 @@ async function handleCollect(request: NextRequest) {
     ...new Set(groupingResults.map((g) => g.group_id)),
   ];
   const enqueuedCount = await enqueueSummarizeJobs(allAffectedGroupIds);
+
+  // LLM 그룹핑 작업 등록 (Ollama 워커가 비동기로 의미 기반 재그룹핑)
+  const newArticleIds = groupingResults.map((g) => g.article_id);
+  await enqueueGroupingJob(newArticleIds);
 
   // 수집 로그 기록
   await Promise.allSettled(fetchResults.map((r) => logFetchResult(r)));

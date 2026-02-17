@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { createClient } from "@supabase/supabase-js";
 import { summarize, validateKoreanContent } from "./summarizer.js";
+import { groupArticlesByLLM } from "./llm-grouper.js";
 import type { ArticleForSummary } from "./summarizer.js";
 
 // 환경변수 검증
@@ -28,10 +29,14 @@ function log(...args: unknown[]) {
   console.log(`[${timestamp}]`, ...args);
 }
 
-// 작업 처리 중 플래그 (동시 처리 방지)
-let isProcessing = false;
+// 요약/그룹핑 작업 처리 중 플래그 (각각 독립적으로 병행 처리)
+let isSummarizingProcessing = false;
+let isGroupingProcessing = false;
 
-// 단일 작업 처리
+// ============================================================
+// 요약 작업 처리 (summarize_jobs)
+// ============================================================
+
 interface SummarizeJob {
   id: string;
   group_id: string;
@@ -164,10 +169,10 @@ async function processJob(job: SummarizeJob): Promise<void> {
   }
 }
 
-// pending 작업 폴링
+// pending 요약 작업 폴링
 async function pollPendingJobs(): Promise<void> {
-  if (isProcessing) return;
-  isProcessing = true;
+  if (isSummarizingProcessing) return;
+  isSummarizingProcessing = true;
 
   try {
     const { data: jobs, error } = await supabase
@@ -194,14 +199,108 @@ async function pollPendingJobs(): Promise<void> {
       error instanceof Error ? error.message : String(error),
     );
   } finally {
-    isProcessing = false;
+    isSummarizingProcessing = false;
   }
 }
 
+// ============================================================
+// 그룹핑 작업 처리 (grouping_jobs)
+// ============================================================
+
+interface GroupingJob {
+  id: string;
+  article_ids: string[];
+  status: string;
+}
+
+async function processGroupingJob(job: GroupingJob): Promise<void> {
+  log(
+    `[그룹핑] 시작 - job=${job.id.slice(0, 8)}, 기사 ${job.article_ids.length}개`,
+  );
+
+  // 낙관적 잠금
+  const { data: locked, error: lockError } = await supabase
+    .from("grouping_jobs")
+    .update({ status: "processing" })
+    .eq("id", job.id)
+    .eq("status", "pending")
+    .select();
+
+  if (lockError || !locked || locked.length === 0) {
+    log(`[그룹핑] 잠금 실패 (이미 처리 중) - job=${job.id.slice(0, 8)}`);
+    return;
+  }
+
+  try {
+    await groupArticlesByLLM(job.id, job.article_ids, supabase);
+
+    await supabase
+      .from("grouping_jobs")
+      .update({
+        status: "completed",
+        processed_at: new Date().toISOString(),
+      })
+      .eq("id", job.id);
+
+    log(`[그룹핑] 완료 - job=${job.id.slice(0, 8)}`);
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : String(error);
+
+    await supabase
+      .from("grouping_jobs")
+      .update({
+        status: "failed",
+        error_message: errorMessage.slice(0, 500),
+        processed_at: new Date().toISOString(),
+      })
+      .eq("id", job.id);
+
+    log(`[그룹핑] 실패 - job=${job.id.slice(0, 8)}:`, errorMessage);
+  }
+}
+
+// pending 그룹핑 작업 폴링
+async function pollGroupingJobs(): Promise<void> {
+  if (isGroupingProcessing) return;
+  isGroupingProcessing = true;
+
+  try {
+    const { data: jobs, error } = await supabase
+      .from("grouping_jobs")
+      .select("id, article_ids, status")
+      .eq("status", "pending")
+      .order("created_at", { ascending: true })
+      .limit(3);
+
+    if (error) {
+      log("[그룹핑 폴링] 작업 조회 실패:", error.message);
+      return;
+    }
+
+    if (jobs && jobs.length > 0) {
+      log(`[그룹핑 폴링] pending 작업 ${jobs.length}개 발견`);
+      for (const job of jobs) {
+        await processGroupingJob(job);
+      }
+    }
+  } catch (error) {
+    log(
+      "[그룹핑 폴링] 오류:",
+      error instanceof Error ? error.message : String(error),
+    );
+  } finally {
+    isGroupingProcessing = false;
+  }
+}
+
+// ============================================================
 // 워커 시작
+// ============================================================
+
 async function startWorker(): Promise<void> {
   log("========================================");
-  log("[워커] Lifeboard 요약 워커 시작");
+  log("[워커] Lifeboard 요약/그룹핑 워커 시작");
   log(`[워커] Supabase: ${SUPABASE_URL}`);
   log(
     `[워커] Ollama: ${process.env.OLLAMA_BASE_URL || "http://localhost:11434"}`,
@@ -210,11 +309,12 @@ async function startWorker(): Promise<void> {
   log("========================================");
 
   // 시작 시 밀린 작업 처리
+  await pollGroupingJobs();
   await pollPendingJobs();
 
-  // Supabase Realtime 구독
+  // Supabase Realtime 구독 (summarize_jobs + grouping_jobs)
   const channel = supabase
-    .channel("summarize-jobs-insert")
+    .channel("worker-jobs")
     .on(
       "postgres_changes",
       {
@@ -223,16 +323,37 @@ async function startWorker(): Promise<void> {
         table: "summarize_jobs",
       },
       async (payload) => {
-        log("[Realtime] 새 작업 감지:", payload.new.id);
-        if (isProcessing) {
-          log("[Realtime] 이미 처리 중 - 다음 폴링에서 처리");
+        log("[Realtime] 새 요약 작업 감지:", payload.new.id);
+        if (isSummarizingProcessing) {
+          log("[Realtime] 요약 처리 중 - 다음 폴링에서 처리");
           return;
         }
-        isProcessing = true;
+        isSummarizingProcessing = true;
         try {
           await processJob(payload.new as SummarizeJob);
         } finally {
-          isProcessing = false;
+          isSummarizingProcessing = false;
+        }
+      },
+    )
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "grouping_jobs",
+      },
+      async (payload) => {
+        log("[Realtime] 새 그룹핑 작업 감지:", payload.new.id);
+        if (isGroupingProcessing) {
+          log("[Realtime] 그룹핑 처리 중 - 다음 폴링에서 처리");
+          return;
+        }
+        isGroupingProcessing = true;
+        try {
+          await processGroupingJob(payload.new as GroupingJob);
+        } finally {
+          isGroupingProcessing = false;
         }
       },
     )
@@ -242,12 +363,14 @@ async function startWorker(): Promise<void> {
 
   // 30초 폴링 폴백 (Realtime 연결 끊김 대비)
   const pollInterval = setInterval(pollPendingJobs, 30_000);
+  const groupingPollInterval = setInterval(pollGroupingJobs, 30_000);
 
   // 종료 시그널 처리
   const cleanup = () => {
     log("[워커] 종료 중...");
     channel.unsubscribe();
     clearInterval(pollInterval);
+    clearInterval(groupingPollInterval);
     process.exit(0);
   };
 
