@@ -6,12 +6,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 라이프보드(Lifeboard) - 인생의 모든 데이터를 한눈에 볼 수 있는 통합 대시보드. Next.js + Supabase 기반.
 
-- **현재 버전**: v1.1b (사용자 경험 개선 완료 - 소셜 로그인, 검색, 북마크, 공유, 설정)
-- **MVP 상태**: Phase 0~5 완료 (2026-02-16), v1.1a 완료 (2026-02-16), v1.1b 완료 (2026-02-16)
+- **현재 버전**: v1.1c (관리자 시스템 핵심 완료 - 역할 시스템, 관리자 대시보드, 뉴스 관리)
+- **MVP 상태**: Phase 0~5 완료 (2026-02-16), v1.1a 완료 (2026-02-16), v1.1b 완료 (2026-02-16), v1.1c 완료 (2026-02-18)
 - **프로덕션**: https://lifeboard-omega.vercel.app
 - **GitHub**: https://github.com/ovlae6252-a11y/lifeboard
 
-**주요 기능** (v1.1b 기준):
+**주요 기능** (v1.1c 기준):
 - 소셜 로그인 (Google, Kakao OAuth 통합)
 - RSS 뉴스 자동 수집 (20+ 언론사, 하루 2회)
 - 유사 기사 그룹핑 (pg_trgm 기반, 유사도 임계값 0.5)
@@ -24,6 +24,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 뉴스 상세 페이지 (팩트 요약 + 관련 기사 목록)
 - 카테고리별 탐색 및 페이지네이션
 - 반응형 대시보드 + 다크모드
+- **관리자 시스템** (v1.1c): 관리자 역할 기반 접근 제어, 시스템 통계 대시보드, 뉴스 소스/그룹/기사 관리, 감사 로그
 
 ## 개발 명령어
 
@@ -90,6 +91,12 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
 - `/api/news/collect` - RSS 수집 API (GET/POST, `CRON_SECRET` 인증 필요)
 - `/api/news/bookmarks` - 북마크 API (GET/POST/DELETE, 최대 100개 제한, v1.1b)
 - `/api/user/preferences` - 사용자 설정 API (GET/PUT, preferred_categories 관리, v1.1b)
+- `/admin/*` - 관리자 전용 페이지 (`AdminSidebar` + `main` 레이아웃, `isAdmin()` 실패 시 `/protected` 리다이렉트, v1.1c)
+- `/admin` - 관리자 대시보드 (시스템 통계, 파이프라인 상태, 차트, 최근 활동 로그)
+- `/admin/news` - 뉴스 관리 (소스/그룹/기사 탭, URL `?tab=` 파라미터 동기화)
+- `/api/admin/news/sources` - 뉴스 소스 관리 API (GET/POST/PUT/DELETE, RSS 유효성 검증)
+- `/api/admin/news/groups` - 뉴스 그룹 관리 API (GET/PUT, 숨김 토글 + 요약 재실행)
+- `/api/admin/news/articles` - 뉴스 기사 관리 API (GET 검색, DELETE soft-delete, PUT 그룹 변경)
 
 ### 컴포넌트 패턴
 
@@ -99,24 +106,26 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
   - `header.tsx`는 Server Component. AuthButton(서버) + ThemeSwitcher/MobileNav(클라이언트) 조합
   - `footer.tsx`는 Client Component (`new Date()` 사용)
   - `nav-links.ts` - Navigation 링크 상수 (대시보드, 뉴스, 설정, v1.1b 설정 추가)
-- `components/news/` - 뉴스 UI 컴포넌트 (Server/Client 분리)
-  - **카드 컴포넌트**: `news-group-card.tsx` (간소화된 UI: 이미지 + 제목 + 메타정보, 상세 페이지 링크)
-  - **상세 페이지**: `news-detail.tsx` (레이아웃, 북마크/공유 버튼 통합 v1.1b), `fact-summary-card.tsx` (팩트 요약), `related-articles-list.tsx` (관련 기사)
-  - **마크다운 렌더링**: `markdown-fact.tsx` (react-markdown + remark-gfm, 팩트 불릿 포인트)
-  - **시간 표시**: `relative-time.tsx` (Client Component, 상대 시간 자동 갱신)
-  - **검색**: `news-search-bar.tsx` (검색 입력, URL 쿼리 파라미터 관리, v1.1b)
-  - **북마크**: `bookmark-button.tsx` (낙관적 UI 업데이트, useOptimistic, v1.1b)
-  - **공유**: `share-button.tsx` (DropdownMenu, 요약/링크 복사, Toast 알림, v1.1b)
-  - **목록/탐색**: `news-list.tsx`, `news-category-tabs.tsx` (북마크 탭 추가 v1.1b), `news-pagination.tsx`
-  - **상태 표시**: `news-skeleton.tsx` (로딩), `news-empty-state.tsx` (빈 상태)
-  - **대시보드**: `news-dashboard-section.tsx` (최신 뉴스 위젯)
-  - **유틸리티**: `category-gradient.tsx` (카테고리별 그라디언트 스타일)
-- `components/settings/` - 사용자 설정 컴포넌트 (v1.1b)
-  - `profile-section.tsx` - 프로필 정보 표시 (로그인 방식, 이메일, 가입일)
-  - `category-preferences.tsx` - 선호 카테고리 설정 (체크박스, 저장)
-- `components/` 루트 - 인증 관련 컴포넌트
-  - `auth-button.tsx` - Server Component, 반드시 `<Suspense>` 안에서 사용
-  - `social-login-buttons.tsx` - 소셜 로그인 버튼 (Google, Kakao, v1.1b)
+- `components/news/` - 뉴스 UI 컴포넌트. Server: `news-group-card.tsx`, `news-dashboard-section.tsx`, `news-empty-state.tsx`. Client: `relative-time.tsx`(상대 시간 자동 갱신), `bookmark-button.tsx`(useOptimistic), `news-search-bar.tsx`(URL 쿼리 관리), `news-pagination.tsx`, `share-button.tsx`. 마크다운: `markdown-fact.tsx`(react-markdown + remark-gfm)
+- `components/settings/` - 사용자 설정 (프로필, 선호 카테고리)
+- `components/admin/` - 관리자 UI 컴포넌트 (모두 Client Component, v1.1c). `admin-sidebar.tsx`(현재 경로 활성 상태), `stats-cards.tsx`, `pipeline-status.tsx`, `quality-metrics.tsx`, `collection-chart.tsx`/`category-chart.tsx`(shadcn/ui Recharts Bar+Pie), `recent-activity.tsx`, `news-source-manager.tsx`, `news-group-manager.tsx`, `news-article-manager.tsx`
+- `auth-button.tsx` - Server Component, 반드시 `<Suspense>` 안에서 사용
+
+### 관리자 시스템 (v1.1c)
+
+`lib/auth/admin.ts` - 관리자 인증 유틸리티:
+- `requireAdmin()` - `getClaims()`의 `app_metadata.role === 'admin'` 확인. 실패 시 `"관리자 권한이 필요합니다"` 에러 throw. 모든 `/api/admin/*` Route 최상단에서 호출 필수.
+- `logAdminAction({ adminId, action, targetType, targetId, details })` - `admin_audit_logs` 테이블에 행위 기록. 민감한 작업(숨김, 삭제, 요약 재실행)마다 호출.
+
+`lib/admin/queries.ts` - 관리자 데이터 조회 (모두 `createAdminClient()` 사용):
+- `getSystemStats()`, `getDailyCollectionStats(days)`, `getCategoryDistribution()`, `getRecentActivity()`
+
+**프록시 관리자 보호**: `proxy.ts`(루트)에서 `/admin/*` 접근 시 세션 갱신 결과에서 `app_metadata.role`을 재사용. **`getClaims()` 이중 호출 금지** - 성능 저하 원인.
+
+**초기 관리자 설정**: SQL Editor에서 수동 실행 (마이그레이션 파일 아님):
+```sql
+UPDATE auth.users SET raw_app_meta_data = raw_app_meta_data || '{"role": "admin"}'::jsonb WHERE email = '<admin-email>';
+```
 
 ### Server/Client Component 경계 규칙
 
@@ -165,6 +174,7 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
 - `content_filters` - 콘텐츠 필터링 규칙 (블랙리스트/화이트리스트 키워드, v1.1a)
 - **`user_preferences`** - 사용자 설정 (선호 카테고리, 대시보드 설정, v1.1b)
 - **`user_bookmarks`** - 사용자 북마크 (뉴스 그룹 ID, 최대 100개 제한, v1.1b)
+- **`admin_audit_logs`** - 관리자 행위 감사 로그 (`admin_id`, `action`, `target_type`, `target_id`, `details JSONB`, v1.1c)
 
 **RPC 함수** (service_role 전용, anon/authenticated 호출 불가):
 - `find_similar_group` - 트라이그램 유사도 기반 그룹 검색
@@ -221,7 +231,7 @@ TEST_USER_PASSWORD=TestPass1234!@
 
 ## 개발 참고
 
-- `docs/ROADMAP.md` - 개발 로드맵 (v1.0 완료, v1.1a 완료, v1.1b 완료)
+- `docs/ROADMAP.md` - 개발 로드맵 (v1.0~v1.1c 완료, v1.1d 예정)
 - `docs/PRD.md` - 제품 요구사항 문서 (v2.4, 2026-02-16)
 - `docs/ISSUE.md` - 알려진 이슈 및 버그 추적
 - `docs/complete/ROADMAP_v1.0.md` - v1.0 (Phase 0~5) 아카이브
