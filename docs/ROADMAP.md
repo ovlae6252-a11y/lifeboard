@@ -60,7 +60,7 @@
 
 ## 개발 단계
 
-### v1.1a: 뉴스 UX 개선 (예상 3~5일)
+### v1.1a: 뉴스 UX 개선 (완료: 2026-02-16)
 
 **목표:** 사용자 피드백을 반영하여 뉴스 시스템의 UI/UX를 개선한다. 카드 간소화, 상세 페이지 분리, AI 요약 품질 향상, 그룹핑 개선, 콘텐츠 필터링을 구현한다.
 **완료 기준:** 뉴스 목록에서 대표이미지 + 제목만 표시되고, 클릭 시 상세 페이지에서 통일된 팩트 요약을 확인할 수 있다. AI 요약 품질이 검증되며, 불필요 기사가 필터링된다.
@@ -188,7 +188,7 @@
 
 ---
 
-### v1.1b: 소셜 로그인 + 검색/북마크/설정 (예상 5~7일)
+### v1.1b: 소셜 로그인 + 검색/북마크/설정 (완료: 2026-02-16)
 
 **목표:** 인증 시스템을 소셜 로그인(Google, Kakao)으로 전환하고, 뉴스 검색, 북마크, 사용자 설정 페이지, 뉴스 공유 기능을 구현한다.
 **완료 기준:** 사용자가 소셜 계정으로 로그인하고, 뉴스를 검색/북마크/공유하며, 설정 페이지에서 프로필과 선호 카테고리를 관리할 수 있다.
@@ -381,46 +381,46 @@
 
 ---
 
-### v1.1c: 관리자 시스템 핵심 (예상 5~7일)
+### v1.1c: 관리자 시스템 핵심 (완료: 2026-02-18)
 
 **목표:** 관리자 역할 시스템을 구축하고, 관리자 대시보드와 뉴스 관리 페이지를 구현하여 서비스 운영 기반을 확립한다.
 **완료 기준:** 관리자 역할이 부여된 사용자만 `/admin/*` 라우트에 접근하여, 시스템 현황을 확인하고, 뉴스 소스/그룹/기사를 관리할 수 있다.
 
 #### 마일스톤 1c.1: 관리자 역할 시스템 (F120)
 
-- [ ] 태스크 1c.1.1: `admin_audit_logs` 테이블 생성
+- [x] 태스크 1c.1.1: `admin_audit_logs` 테이블 생성
   - 상세: `id UUID PK DEFAULT gen_random_uuid()`, `admin_id UUID REFERENCES auth.users(id) NOT NULL`, `action TEXT NOT NULL` ('update_role' | 'toggle_source' | 'hide_group' | 'rerun_summary' 등), `target_type TEXT NOT NULL`, `target_id TEXT`, `details JSONB DEFAULT '{}'`, `created_at TIMESTAMPTZ DEFAULT now()`. RLS: 관리자만 SELECT, service_role INSERT. `admin_id`, `created_at DESC` 인덱스 생성.
   - 관련 파일: `supabase/migrations/[timestamp]_create_admin_audit_logs.sql`
 
-- [ ] 태스크 1c.1.2: `database.types.ts` 재생성
+- [x] 태스크 1c.1.2: `database.types.ts` 재생성
   - 상세: 새 테이블 생성 후 타입 파일 갱신.
   - 관련 파일: `lib/supabase/database.types.ts`
 
-- [ ] 태스크 1c.1.3: 관리자 역할 확인 유틸리티 구현
+- [x] 태스크 1c.1.3: 관리자 역할 확인 유틸리티 구현
   - 상세: `lib/auth/admin.ts` 신규. `isAdmin(): Promise<boolean>` - `getClaims()`로 `app_metadata.role === 'admin'` 확인. `requireAdmin(): Promise<void>` - 관리자 아닌 경우 에러 throw. `getAdminClaims()` - claims 데이터 캐싱하여 이중 호출 방지.
   - 관련 파일: `lib/auth/admin.ts`
 
-- [ ] 태스크 1c.1.4: `proxy.ts`에 관리자 라우트 보호 추가
+- [x] 태스크 1c.1.4: `proxy.ts`에 관리자 라우트 보호 추가
   - 상세: `lib/supabase/proxy.ts` 수정. `/admin/*` 경로 접근 시 기존 `getClaims()` 결과에서 `app_metadata.role` 확인. 관리자가 아니면 `/protected`로 리다이렉트. **주의: `getClaims()` 이중 호출 금지** - 기존 호출 결과를 재사용.
   - 관련 파일: `lib/supabase/proxy.ts`
 
-- [ ] 태스크 1c.1.5: 초기 관리자 계정 설정 SQL
+- [x] 태스크 1c.1.5: 초기 관리자 계정 설정 SQL
   - 상세: 프로젝트 운영자 이메일에 관리자 역할 부여하는 SQL 작성. `UPDATE auth.users SET raw_app_meta_data = raw_app_meta_data || '{"role": "admin"}'::jsonb WHERE email = '<admin-email>';` Supabase SQL Editor에서 실행 (마이그레이션 파일이 아닌 수동 실행).
   - 관련 파일: 없음 (Supabase SQL Editor 수동 실행, 가이드 문서화)
 
-- [ ] 태스크 1c.1.6: 관리자 레이아웃 구현 (`/admin/layout.tsx`)
+- [x] 태스크 1c.1.6: 관리자 레이아웃 구현 (`/admin/layout.tsx`)
   - 상세: `app/admin/layout.tsx` 신규. Server Component. `isAdmin()` 호출, 관리자 아니면 `redirect('/protected')`. `AdminSidebar` + `main` flex 레이아웃. 사이드바 네비게이션: 대시보드, 뉴스 관리, 콘텐츠 모더레이션, 사용자 관리, 시스템 모니터링, 사이트로 돌아가기.
   - 관련 파일: `app/admin/layout.tsx`
 
-- [ ] 태스크 1c.1.7: 관리자 사이드바 컴포넌트 구현
+- [x] 태스크 1c.1.7: 관리자 사이드바 컴포넌트 구현
   - 상세: `components/admin/admin-sidebar.tsx` 신규. 네비게이션 링크 목록 (아이콘 + 텍스트). 현재 경로 활성 상태 표시. 모바일 반응형 (시트 또는 접이식). "사이트로 돌아가기" 링크 (`/protected`).
   - 관련 파일: `components/admin/admin-sidebar.tsx`
 
-- [ ] 태스크 1c.1.8: 헤더에 관리자 링크 추가
+- [x] 태스크 1c.1.8: 헤더에 관리자 링크 추가
   - 상세: `components/layout/header.tsx` 수정. 관리자 역할인 경우에만 "관리자" 링크 표시. 클라이언트 측 role 확인 (Supabase Auth 세션의 `app_metadata`에서 읽기) 또는 서버 컴포넌트에서 조건부 렌더링.
   - 관련 파일: `components/layout/header.tsx`
 
-- [ ] 태스크 1c.1.9: Playwright MCP 테스트 - 관리자 역할 시스템
+- [x] 태스크 1c.1.9: Playwright MCP 테스트 - 관리자 역할 시스템
   - 사전 조건: 태스크 1c.1.1 ~ 1c.1.8 완료
   - 검증 항목:
     1. `browser_navigate`로 일반 사용자 로그인 후 `/admin` 접근 -> `/protected`로 리다이렉트 확인
@@ -431,35 +431,35 @@
 
 #### 마일스톤 1c.2: 관리자 대시보드 (F121)
 
-- [ ] 태스크 1c.2.1: 관리자 통계 쿼리 함수 구현
+- [x] 태스크 1c.2.1: 관리자 통계 쿼리 함수 구현
   - 상세: `lib/admin/queries.ts` 신규. `getSystemStats()` - 총 사용자 수 (`auth.admin.listUsers` count), 오늘 활성 사용자, 총 뉴스 그룹 수, 오늘 수집 기사 수, 대기 중인 요약 작업 수, 요약 완료율, 유효하지 않은 요약 수 (`is_valid = false`), 평균 그룹당 기사 수. `getDailyCollectionStats(days: number)` - 일별 기사 수집량. `getCategoryDistribution()` - 카테고리별 기사 분포. `getRecentActivity()` - 최근 수집 로그 5건, 최근 요약 완료/실패 5건. 모두 `getSupabaseAdmin()` 사용.
   - 관련 파일: `lib/admin/queries.ts`
 
-- [ ] 태스크 1c.2.2: shadcn/ui chart 컴포넌트 설치
+- [x] 태스크 1c.2.2: shadcn/ui chart 컴포넌트 설치
   - 상세: `npx shadcn@latest add chart` 실행. Recharts 기반 차트 컴포넌트 추가. 일별 수집량 Bar Chart, 카테고리 분포 Pie Chart에 활용.
   - 관련 파일: `components/ui/chart.tsx`
 
-- [ ] 태스크 1c.2.3: 시스템 개요 카드 컴포넌트 구현
+- [x] 태스크 1c.2.3: 시스템 개요 카드 컴포넌트 구현
   - 상세: `components/admin/stats-cards.tsx` 신규. 4개 카드 그리드: 총 사용자 수, 총 뉴스 그룹 수, 오늘 수집 기사 수, 대기 중 요약 작업 수. 각 카드에 아이콘 + 숫자 + 라벨.
   - 관련 파일: `components/admin/stats-cards.tsx`
 
-- [ ] 태스크 1c.2.4: 파이프라인 상태 + 품질 지표 컴포넌트 구현
+- [x] 태스크 1c.2.4: 파이프라인 상태 + 품질 지표 컴포넌트 구현
   - 상세: `components/admin/pipeline-status.tsx` 신규. 마지막 수집 시간, 수집 성공/실패율, 요약 완료율 표시. `components/admin/quality-metrics.tsx` 신규. 유효하지 않은 요약 수, 평균 그룹당 기사 수, 필터링된 기사 수 표시.
   - 관련 파일: `components/admin/pipeline-status.tsx`, `components/admin/quality-metrics.tsx`
 
-- [ ] 태스크 1c.2.5: 일별 수집량 차트 + 카테고리 분포 차트 구현
+- [x] 태스크 1c.2.5: 일별 수집량 차트 + 카테고리 분포 차트 구현
   - 상세: `components/admin/collection-chart.tsx` 신규. shadcn/ui Chart 기반 Bar Chart (일별 수집량 7일). `components/admin/category-chart.tsx` 신규. Pie Chart (카테고리별 기사 분포). Client Component (차트 인터랙션).
   - 관련 파일: `components/admin/collection-chart.tsx`, `components/admin/category-chart.tsx`
 
-- [ ] 태스크 1c.2.6: 최근 활동 로그 컴포넌트 구현
+- [x] 태스크 1c.2.6: 최근 활동 로그 컴포넌트 구현
   - 상세: `components/admin/recent-activity.tsx` 신규. 최근 수집 로그 5건 + 최근 요약 작업 5건 테이블. 상태 배지 (성공: green, 실패: red).
   - 관련 파일: `components/admin/recent-activity.tsx`
 
-- [ ] 태스크 1c.2.7: 관리자 대시보드 페이지 구현 (`/admin`)
+- [x] 태스크 1c.2.7: 관리자 대시보드 페이지 구현 (`/admin`)
   - 상세: `app/admin/page.tsx` 신규. Server Component. `getSystemStats()`, `getDailyCollectionStats()`, `getCategoryDistribution()`, `getRecentActivity()` 호출. 카드 그리드 + 차트 + 활동 로그 배치. `Suspense` fallback 적용.
   - 관련 파일: `app/admin/page.tsx`
 
-- [ ] 태스크 1c.2.8: Playwright MCP 테스트 - 관리자 대시보드
+- [x] 태스크 1c.2.8: Playwright MCP 테스트 - 관리자 대시보드
   - 사전 조건: 태스크 1c.2.7 완료
   - 검증 항목:
     1. `browser_navigate`로 관리자 로그인 후 `/admin` 접근 -> 대시보드 페이지 로드 확인
@@ -470,35 +470,35 @@
 
 #### 마일스톤 1c.3: 뉴스 관리 (F122)
 
-- [ ] 태스크 1c.3.1: 뉴스 소스 관리 API Route 구현
+- [x] 태스크 1c.3.1: 뉴스 소스 관리 API Route 구현
   - 상세: `app/api/admin/news/sources/route.ts` 신규. GET: 소스 목록 조회 (마지막 수집 시간, 최근 성공/실패 횟수 포함). POST: 새 소스 추가 (RSS URL 유효성 검증 - 실제 RSS 피드인지 fetch + 파싱 테스트). PUT: 소스 편집 (이름, 카테고리, URL 수정, 활성 상태 토글). DELETE: 소스 삭제. 모든 요청에서 `requireAdmin()` 검증. 감사 로그 (`admin_audit_logs`) 기록.
   - 관련 파일: `app/api/admin/news/sources/route.ts`
 
-- [ ] 태스크 1c.3.2: 뉴스 그룹 관리 API Route 구현
+- [x] 태스크 1c.3.2: 뉴스 그룹 관리 API Route 구현
   - 상세: `app/api/admin/news/groups/route.ts` 신규. GET: 그룹 목록 조회 (필터: 카테고리, is_valid, is_summarized). PUT: 그룹 숨김/노출 토글 (`is_valid` 변경). POST (action: 'rerun_summary'): AI 요약 재실행 (`summarize_jobs`에 재등록, 기존 `fact_summary` 초기화). 일괄 작업 지원 (body에 `groupIds` 배열). 감사 로그 기록.
   - 관련 파일: `app/api/admin/news/groups/route.ts`
 
-- [ ] 태스크 1c.3.3: 뉴스 기사 관리 API Route 구현
+- [x] 태스크 1c.3.3: 뉴스 기사 관리 API Route 구현
   - 상세: `app/api/admin/news/articles/route.ts` 신규. GET: 기사 검색 (제목, 소스, 날짜 범위 필터). DELETE: 기사 soft delete (`is_deleted = true`). PUT: 기사 그룹 변경 (`group_id` 수정). 감사 로그 기록.
   - 관련 파일: `app/api/admin/news/articles/route.ts`
 
-- [ ] 태스크 1c.3.4: 소스 관리 UI 컴포넌트 구현
+- [x] 태스크 1c.3.4: 소스 관리 UI 컴포넌트 구현
   - 상세: `components/admin/news-source-manager.tsx` 신규. Client Component. 소스 목록 테이블 (이름, URL, 카테고리, 활성 상태, 마지막 수집 시간, 총 기사 수). 활성/비활성 토글 스위치. "소스 추가" 버튼 -> 모달 (URL 입력, 언론사명, 카테고리 선택). 소스 편집/삭제. 소스별 상태 배지.
   - 관련 파일: `components/admin/news-source-manager.tsx`
 
-- [ ] 태스크 1c.3.5: 그룹 관리 UI 컴포넌트 구현
+- [x] 태스크 1c.3.5: 그룹 관리 UI 컴포넌트 구현
   - 상세: `components/admin/news-group-manager.tsx` 신규. Client Component. 그룹 목록 테이블 (대표 기사 제목, 카테고리, 기사 수, 유효성, 요약 상태). 필터: 카테고리, 유효성, 요약 상태. 숨김/노출 토글. 요약 재실행 버튼. 체크박스 일괄 선택 + 일괄 작업 (숨김/노출, 요약 재실행). 그룹 클릭 시 상세 보기 (소속 기사, 현재 요약, 작업 이력).
   - 관련 파일: `components/admin/news-group-manager.tsx`
 
-- [ ] 태스크 1c.3.6: 기사 관리 UI 컴포넌트 구현
+- [x] 태스크 1c.3.6: 기사 관리 UI 컴포넌트 구현
   - 상세: `components/admin/news-article-manager.tsx` 신규. Client Component. 기사 검색 (제목, 소스, 날짜 범위). 기사 목록 테이블 (제목, 소스, 그룹, 발행일, 상태). 기사 삭제 (soft delete). 그룹 변경 (드롭다운 또는 검색).
   - 관련 파일: `components/admin/news-article-manager.tsx`
 
-- [ ] 태스크 1c.3.7: 뉴스 관리 페이지 구현 (`/admin/news`)
+- [x] 태스크 1c.3.7: 뉴스 관리 페이지 구현 (`/admin/news`)
   - 상세: `app/admin/news/page.tsx` 신규. 탭 구성: 소스 관리, 그룹 관리, 기사 관리. URL `?tab=` 파라미터와 동기화. 기본 탭: 소스 관리.
   - 관련 파일: `app/admin/news/page.tsx`
 
-- [ ] 태스크 1c.3.8: Playwright MCP 테스트 - 뉴스 관리 페이지
+- [x] 태스크 1c.3.8: Playwright MCP 테스트 - 뉴스 관리 페이지
   - 사전 조건: 태스크 1c.3.7 완료
   - 검증 항목:
     1. `browser_navigate`로 관리자 로그인 후 `/admin/news` 접근 -> 탭 UI 렌더링 확인
@@ -768,9 +768,10 @@
 
 ## 변경 이력
 
-| 날짜       | 버전 | 변경 내용                                                             |
-| ---------- | ---- | --------------------------------------------------------------------- |
-| 2026-02-16 | 2.0  | 초기 로드맵 생성 (PRD v2.4 기반)                                      |
-| 2026-02-16 | 2.1  | v1.1 범위로 축소 (v1.2, v2.0 섹션 제거 — 별도 로드맵으로 분리 예정)   |
-| 2026-02-16 | 2.2  | v1.1a 마일스톤 1a.1~1a.3 태스크 완료 상태 업데이트 (22개 태스크 완료) |
-| 2026-02-16 | 2.3  | v1.1a Playwright 테스트 3개 완료 처리 - 전체 25개 태스크 완료         |
+| 날짜       | 버전 | 변경 내용                                                                                                                        |
+| ---------- | ---- | -------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-02-16 | 2.0  | 초기 로드맵 생성 (PRD v2.4 기반)                                                                                                 |
+| 2026-02-16 | 2.1  | v1.1 범위로 축소 (v1.2, v2.0 섹션 제거 — 별도 로드맵으로 분리 예정)                                                              |
+| 2026-02-16 | 2.2  | v1.1a 마일스톤 1a.1~1a.3 태스크 완료 상태 업데이트 (22개 태스크 완료)                                                            |
+| 2026-02-16 | 2.3  | v1.1a Playwright 테스트 3개 완료 처리 - 전체 25개 태스크 완료                                                                    |
+| 2026-02-18 | 2.4  | v1.1c 완료 처리 - 관리자 역할 시스템(F120), 관리자 대시보드(F121), 뉴스 관리(F122) 전체 25개 태스크 완료, Playwright 테스트 통과 |

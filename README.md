@@ -2,10 +2,10 @@
 
 인생의 모든 데이터를 한눈에 볼 수 있는 통합 대시보드 웹 애플리케이션.
 
-**현재 버전**: v1.1b (사용자 경험 개선)
+**현재 버전**: v1.1c (관리자 시스템 핵심 완료)
 **프로덕션**: https://lifeboard-omega.vercel.app
 
-MVP(v1.0)는 한국 주요 언론사 RSS 뉴스 수집, AI 기반 팩트 요약, 카테고리별 뉴스 탐색 기능에 집중합니다. v1.1a에서는 뉴스 카드 UI 간소화, 상세 페이지, AI 품질 관리, 콘텐츠 필터링 기능을 추가했습니다. v1.1b에서는 소셜 로그인(Google, Kakao, Apple), 뉴스 검색, 북마크, 공유, 사용자 설정 페이지를 추가했습니다.
+MVP(v1.0)는 한국 주요 언론사 RSS 뉴스 수집, AI 기반 팩트 요약, 카테고리별 뉴스 탐색 기능에 집중합니다. v1.1a에서는 뉴스 카드 UI 간소화, 상세 페이지, AI 품질 관리, 콘텐츠 필터링을 추가했습니다. v1.1b에서는 소셜 로그인(Google, Kakao), 뉴스 검색, 북마크, 공유, 사용자 설정 페이지를 추가했습니다. v1.1c에서는 관리자 역할 시스템, 관리자 대시보드, 뉴스 관리 페이지를 구현했습니다.
 
 ## 주요 기능
 
@@ -30,12 +30,18 @@ MVP(v1.0)는 한국 주요 언론사 RSS 뉴스 수집, AI 기반 팩트 요약,
 
 ### v1.1b (사용자 경험 개선)
 
-- **소셜 로그인** - Google, Kakao, Apple OAuth 통합, 기존 이메일/비밀번호 인증 제거
+- **소셜 로그인** - Google, Kakao OAuth 통합, 기존 이메일/비밀번호 인증 제거
 - **뉴스 검색** - pg_trgm 유사도 기반 전체 텍스트 검색 (제목 및 팩트 요약)
 - **북마크 기능** - 최대 100개 뉴스 북마크, 낙관적 UI 업데이트 (useOptimistic), 전용 탭
 - **뉴스 공유** - 팩트 요약 및 링크 클립보드 복사, Toast 알림 (sonner)
 - **사용자 설정** - 프로필 정보 확인 (로그인 방식, 이메일, 가입일), 선호 카테고리 관리
 - **개발용 로그인** - 테스트 사용자 자동 생성 API (개발 환경 전용)
+
+### v1.1c (관리자 시스템 핵심)
+
+- **관리자 역할 시스템** - `app_metadata.role` 기반 역할 제어, `/admin/*` 라우트 보호, 감사 로그(`admin_audit_logs`)
+- **관리자 대시보드** - 시스템 통계(사용자 수, 뉴스 그룹 수, 수집 기사 수, 대기 작업 수), 파이프라인 상태, 일별 수집량 차트(Bar), 카테고리 분포(Pie), 최근 활동 로그
+- **뉴스 관리** - 소스 관리(활성/비활성 토글, 추가/편집/삭제), 그룹 관리(숨김 토글, 요약 재실행), 기사 관리(검색, soft delete, 그룹 변경)
 
 ## 기술 스택
 
@@ -178,74 +184,61 @@ npx supabase db push    # DB 마이그레이션 적용 (원격 Supabase)
 
 ```
 app/
+  admin/                   # 관리자 페이지 (v1.1c)
+    layout.tsx             #   관리자 레이아웃 (isAdmin() 검증, AdminSidebar)
+    page.tsx               #   관리자 대시보드
+    news/page.tsx          #   뉴스 관리 (소스/그룹/기사 탭)
   api/
-    auth/dev-login/        # 개발용 로그인 API (v1.1b)
+    auth/dev-login/        # 개발용 로그인 API
     news/
       collect/             #   RSS 수집 API (Vercel Cron)
-      bookmarks/           #   북마크 API (v1.1b)
-    user/preferences/      # 사용자 설정 API (v1.1b)
-  auth/
-    login/                 # 소셜 로그인 페이지 (v1.1b)
-    callback/              # OAuth 콜백 핸들러 (v1.1b)
+      bookmarks/           #   북마크 API
+    user/preferences/      # 사용자 설정 API
+    admin/news/
+      sources/             #   소스 관리 API (v1.1c)
+      groups/              #   그룹 관리 API (v1.1c)
+      articles/            #   기사 관리 API (v1.1c)
+  auth/login/              # 소셜 로그인 페이지
   protected/               # 인증 필요 페이지
     page.tsx               #   대시보드 (최신 뉴스 6개)
     news/
-      page.tsx             #   뉴스 목록 (카테고리 + 검색 + 북마크 탭, v1.1b)
-      [groupId]/page.tsx   #   뉴스 상세 페이지 (v1.1a)
-    settings/              #   사용자 설정 페이지 (v1.1b)
+      page.tsx             #   뉴스 목록 (카테고리 + 검색 + 북마크 탭)
+      [groupId]/page.tsx   #   뉴스 상세 페이지
+    settings/page.tsx      #   사용자 설정 페이지
 components/
+  admin/                   # 관리자 UI 컴포넌트 (v1.1c, 모두 Client Component)
+    admin-sidebar.tsx      #   사이드바 네비게이션
+    stats-cards.tsx        #   시스템 통계 카드
+    pipeline-status.tsx    #   파이프라인 상태
+    quality-metrics.tsx    #   품질 지표
+    collection-chart.tsx   #   일별 수집량 Bar Chart
+    category-chart.tsx     #   카테고리 분포 Pie Chart
+    recent-activity.tsx    #   최근 활동 로그
+    news-source-manager.tsx  # 소스 관리 테이블
+    news-group-manager.tsx   # 그룹 관리 테이블
+    news-article-manager.tsx # 기사 관리 테이블
   layout/                  # 공통 레이아웃 (헤더, 모바일 네비게이션, 푸터)
-  news/                    # 뉴스 UI 컴포넌트
-    news-group-card.tsx    #   뉴스 카드 (간소화된 UI, v1.1a)
-    news-detail.tsx        #   뉴스 상세 레이아웃 (v1.1a)
-    news-search-bar.tsx    #   검색 바 (v1.1b)
-    bookmark-button.tsx    #   북마크 버튼 (낙관적 UI, v1.1b)
-    share-button.tsx       #   공유 버튼 (v1.1b)
-    fact-summary-card.tsx  #   팩트 요약 카드 (v1.1a)
-    related-articles-list.tsx # 관련 기사 목록 (v1.1a)
-    markdown-fact.tsx      #   마크다운 렌더링 (v1.1a)
-    relative-time.tsx      #   상대 시간 표시 (v1.1a)
-    news-category-tabs.tsx #   카테고리 탭 필터 (북마크 탭 추가, v1.1b)
-    news-list.tsx          #   뉴스 카드 그리드
-    news-pagination.tsx    #   페이지네이션
-    news-skeleton.tsx      #   로딩 스켈레톤
-    news-empty-state.tsx   #   빈 상태 안내
-    news-dashboard-section.tsx # 대시보드 뉴스 섹션
-    category-gradient.tsx  #   카테고리 그라디언트 (v1.1a)
-  settings/                # 사용자 설정 컴포넌트 (v1.1b)
-    profile-section.tsx    #   프로필 정보
-    category-preferences.tsx # 선호 카테고리 설정
+  news/                    # 뉴스 UI 컴포넌트 (Server/Client 분리)
+  settings/                # 사용자 설정 컴포넌트
   ui/                      # shadcn/ui 컴포넌트
-    sonner.tsx             #   Toast 알림 (v1.1b)
-  social-login-buttons.tsx # 소셜 로그인 버튼 (v1.1b)
 lib/
-  news/                    # 뉴스 파이프라인
-    rss-fetcher.ts         #   RSS 피드 파싱
-    normalize-title.ts     #   제목 정규화 (태그 제거, 정규화)
-    grouping.ts            #   트라이그램 유사도 그룹핑
-    content-filter.ts      #   콘텐츠 필터링 (v1.1a)
-    summarize-queue.ts     #   요약 작업 큐 생성
-    cleanup.ts             #   오래된 레코드 정리
-    fetch-logger.ts        #   수집 로그 기록
-    queries.ts             #   프론트엔드 데이터 페칭
-    categories.ts          #   카테고리 상수
-    types.ts               #   타입 정의
+  admin/
+    queries.ts             # 관리자 데이터 쿼리 함수 (v1.1c)
+  auth/
+    admin.ts               # requireAdmin(), logAdminAction() (v1.1c)
+  news/                    # 뉴스 파이프라인 + 프론트엔드 쿼리
   supabase/                # Supabase 클라이언트 (server, client, proxy, admin, env)
   utils/                   # 유틸리티
-    format-time.ts         #   상대 시간 포맷
-    news-image.ts          #   이미지 폴백 처리 (v1.1a)
 scripts/                   # Ollama PC 워커 (독립 패키지)
   worker.ts                #   메인 워커
-  summarizer.ts            #   팩트 추출 + 한국어 검증 (v1.1a)
+  summarizer.ts            #   팩트 추출 + 한국어 검증
 supabase/
   migrations/              # DB 마이그레이션 SQL 파일
 docs/
   PRD.md                   # 제품 요구사항 (v2.4)
-  ROADMAP.md               # 개발 로드맵 (v1.1b 완료)
+  ROADMAP.md               # 개발 로드맵 (v1.1c 완료, v1.1d 예정)
   complete/                # 완료된 로드맵 아카이브
 tests/                     # E2E 테스트 (Playwright)
-  auth.setup.ts            #   인증 설정
-  news-search.spec.ts      #   뉴스 검색 테스트
 ```
 
 ## 데이터베이스 스키마
@@ -260,6 +253,7 @@ tests/                     # E2E 테스트 (Playwright)
 | `content_filters`      | 콘텐츠 필터링 규칙 (블랙리스트/화이트리스트 키워드) v1.1a                         |
 | **`user_preferences`** | **사용자 설정 (선호 카테고리, 대시보드 설정)** v1.1b                              |
 | **`user_bookmarks`**   | **사용자 북마크 (뉴스 그룹 ID, 최대 100개 제한)** v1.1b                           |
+| **`admin_audit_logs`** | **관리자 행위 감사 로그 (action, target_type, target_id, details JSONB)** v1.1c   |
 
 ### RPC 함수
 
@@ -293,16 +287,22 @@ tests/                     # E2E 테스트 (Playwright)
 
 ### v1.1b (사용자 경험 개선) - 완료 (2026-02-16)
 
-- [x] 소셜 로그인 (Google, Kakao, Apple)
+- [x] 소셜 로그인 (Google, Kakao)
 - [x] 뉴스 검색
 - [x] 북마크 기능
 - [x] 사용자 설정 페이지
 - [x] 뉴스 공유
 
+### v1.1c (관리자 시스템 핵심) - 완료 (2026-02-18)
+
+- [x] 관리자 역할 시스템 (F120) - `requireAdmin()`, 라우트 보호, 감사 로그
+- [x] 관리자 대시보드 (F121) - 시스템 통계, 차트, 최근 활동
+- [x] 뉴스 관리 페이지 (F122) - 소스/그룹/기사 관리
+
 ## 문서
 
 - [PRD](docs/PRD.md) - 제품 요구사항 문서 (v2.4, 2026-02-16)
-- [ROADMAP](docs/ROADMAP.md) - 개발 로드맵 (v1.1b 완료)
+- [ROADMAP](docs/ROADMAP.md) - 개발 로드맵 (v1.1c 완료, v1.1d 예정)
 - [CLAUDE.md](CLAUDE.md) - Claude Code 작업 가이드
 - [완료된 로드맵](docs/complete/) - v1.0 (Phase 0~5) 아카이브
 
