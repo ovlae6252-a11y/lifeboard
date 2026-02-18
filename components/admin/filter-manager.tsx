@@ -386,7 +386,7 @@ export function FilterManager() {
                       </div>
                     </div>
                   ) : (
-                    <p className="text-xs text-green-600 dark:text-green-400">
+                    <p className="text-muted-foreground text-xs">
                       차단될 키워드가 없습니다
                     </p>
                   )}

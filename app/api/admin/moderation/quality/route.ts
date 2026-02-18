@@ -81,6 +81,7 @@ export async function PUT(request: Request) {
         .eq("id", id);
       if (error) throw error;
     }
+    // reject: is_valid=false 상태를 그대로 유지 (DB 변경 없음, 감사 로그만 기록)
 
     await logAdminAction({
       adminId,
@@ -126,7 +127,16 @@ export async function POST(request: Request) {
 
     const { error } = await admin.from("summarize_jobs").insert(jobs);
 
-    if (error) throw error;
+    if (error) {
+      // 이미 pending/processing 상태인 그룹이 포함된 경우 (unique constraint 위반)
+      if (error.code === "23505") {
+        return NextResponse.json(
+          { error: "이미 요약 작업이 예약된 그룹이 포함되어 있습니다" },
+          { status: 409 },
+        );
+      }
+      throw error;
+    }
 
     await logAdminAction({
       adminId,

@@ -31,13 +31,13 @@ async function UsersContent() {
       label: "전체 사용자",
       value: totalUsers.toLocaleString(),
       icon: Users,
-      color: "text-blue-500",
+      color: "text-primary",
     },
     {
       label: "오늘 가입",
       value: String(todaySignups),
       icon: UserPlus,
-      color: "text-green-500",
+      color: "text-muted-foreground",
     },
   ];
 

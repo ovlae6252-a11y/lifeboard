@@ -8,18 +8,22 @@ import { WidgetSettings } from "@/components/settings/widget-settings";
 export async function SettingsContent() {
   const supabase = await createClient();
 
-  // 사용자 인증 확인
+  // getClaims: 캐시된 JWT 검증으로 빠르게 인증 상태 확인
+  const { data: claimsData } = await supabase.auth.getClaims();
+  if (!claimsData?.claims) {
+    redirect("/auth/login");
+  }
+
+  // ProfileSection용 전체 User 객체 조회 (provider, email, created_at 등 필요)
   const {
     data: { user },
-    error,
   } = await supabase.auth.getUser();
-
-  if (error || !user) {
+  if (!user) {
     redirect("/auth/login");
   }
 
   // 사용자 설정 조회
-  const preferences = await getUserPreferences(user.id);
+  const preferences = await getUserPreferences(claimsData.claims.sub);
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">

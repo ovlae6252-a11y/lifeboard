@@ -75,7 +75,7 @@ export async function getCurrentWeather(
   lon: number,
 ): Promise<CurrentWeather> {
   "use cache";
-  cacheLife({ revalidate: 1800 }); // 30분 캐시
+  cacheLife({ stale: 300, revalidate: 1800, expire: 3600 }); // stale 5분, revalidate 30분, expire 1시간
 
   const apiKey = getApiKey();
   const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=kr`;
@@ -111,7 +111,7 @@ export async function getHourlyForecast(
   lon: number,
 ): Promise<HourlyForecast[]> {
   "use cache";
-  cacheLife({ revalidate: 1800 }); // 30분 캐시
+  cacheLife({ stale: 300, revalidate: 1800, expire: 3600 }); // stale 5분, revalidate 30분, expire 1시간
 
   const apiKey = getApiKey();
   const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=kr&cnt=8`;
@@ -124,8 +124,8 @@ export async function getHourlyForecast(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const data: any = await res.json();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (data.list ?? []).map(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (item: any): HourlyForecast => ({
       time: item.dt_txt, // "YYYY-MM-DD HH:mm:ss"
       temp: Math.round(item.main.temp),
@@ -146,7 +146,7 @@ export async function getWeeklyForecast(
   lon: number,
 ): Promise<DailyForecast[]> {
   "use cache";
-  cacheLife({ revalidate: 1800 }); // 30분 캐시
+  cacheLife({ stale: 300, revalidate: 1800, expire: 3600 }); // stale 5분, revalidate 30분, expire 1시간
 
   const apiKey = getApiKey();
   // cnt=40: 5일 * 8개(3시간 간격)

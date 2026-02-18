@@ -37,6 +37,22 @@ function WeatherLoading() {
 }
 
 async function WeatherContent() {
+  // API 키 미설정 시 안내 UI 반환
+  if (!process.env.WEATHER_API_KEY) {
+    return (
+      <div className="mx-auto max-w-2xl">
+        <Card>
+          <CardContent className="p-10 text-center">
+            <p className="text-muted-foreground text-sm">
+              날씨 서비스를 이용하려면 관리자가 WEATHER_API_KEY를 설정해야
+              합니다.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   // 사용자 위치 설정 조회
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();

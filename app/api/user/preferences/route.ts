@@ -6,6 +6,7 @@ import {
   updateUserPreferences,
   type UserPreferences,
 } from "@/lib/user/preferences";
+import { LOCATION_NAMES } from "@/lib/weather/locations";
 
 /**
  * GET /api/user/preferences
@@ -59,6 +60,17 @@ export async function PUT(request: NextRequest) {
     // 요청 본문 파싱
     const updates: Partial<Omit<UserPreferences, "user_id" | "updated_at">> =
       await request.json();
+
+    // weather_location 화이트리스트 검증
+    if (
+      updates.weather_location !== undefined &&
+      !LOCATION_NAMES.includes(updates.weather_location)
+    ) {
+      return NextResponse.json(
+        { error: "유효하지 않은 위치입니다" },
+        { status: 400 },
+      );
+    }
 
     // 사용자 설정 업데이트
     const preferences = await updateUserPreferences(user.id, updates);

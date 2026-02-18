@@ -81,14 +81,14 @@ export function SystemStatus() {
       value: formatDate(data.lastCronRun),
       relative: formatRelativeTime(data.lastCronRun),
       icon: Clock,
-      color: "text-blue-500",
+      color: "text-primary",
     },
     {
       label: "마지막 워커 활동",
       value: formatDate(data.lastWorkerActivity),
       relative: formatRelativeTime(data.lastWorkerActivity),
       icon: Zap,
-      color: "text-amber-500",
+      color: "text-primary",
     },
   ];
 
@@ -97,25 +97,25 @@ export function SystemStatus() {
       label: "뉴스 그룹",
       value: data.tableStats.groups,
       icon: Layers,
-      color: "text-purple-500",
+      color: "text-primary",
     },
     {
       label: "뉴스 기사",
       value: data.tableStats.articles,
       icon: FileText,
-      color: "text-green-500",
+      color: "text-primary",
     },
     {
       label: "요약 작업",
       value: data.tableStats.jobs,
       icon: Activity,
-      color: "text-orange-500",
+      color: "text-muted-foreground",
     },
     {
       label: "수집 로그",
       value: data.tableStats.logs,
       icon: Database,
-      color: "text-slate-500",
+      color: "text-muted-foreground",
     },
   ];
 

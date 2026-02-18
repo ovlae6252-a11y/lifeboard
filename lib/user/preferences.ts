@@ -77,14 +77,26 @@ export async function updateUserPreferences(
 ): Promise<UserPreferences> {
   const supabase = createAdminClient();
 
-  const updateData = {
+  // undefined 필드를 제외하여 upsert 시 기존 값이 null로 덮어써지는 것을 방지
+  const updateData: {
+    user_id: string;
+    updated_at: string;
+    preferred_categories?: Json;
+    dashboard_config?: Json;
+    weather_location?: string;
+    email_digest_enabled?: boolean;
+  } = {
     user_id: userId,
-    preferred_categories: updates.preferred_categories as Json,
-    dashboard_config: updates.dashboard_config as Json,
-    weather_location: updates.weather_location,
-    email_digest_enabled: updates.email_digest_enabled,
     updated_at: new Date().toISOString(),
   };
+  if (updates.preferred_categories !== undefined)
+    updateData.preferred_categories = updates.preferred_categories as Json;
+  if (updates.dashboard_config !== undefined)
+    updateData.dashboard_config = updates.dashboard_config as Json;
+  if (updates.weather_location !== undefined)
+    updateData.weather_location = updates.weather_location;
+  if (updates.email_digest_enabled !== undefined)
+    updateData.email_digest_enabled = updates.email_digest_enabled;
 
   const { data, error } = await supabase
     .from("user_preferences")

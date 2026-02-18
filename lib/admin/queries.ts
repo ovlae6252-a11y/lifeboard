@@ -264,9 +264,7 @@ export async function getFetchLogs({
   page?: number;
   limit?: number;
 }): Promise<PaginatedResult<FetchLogDetail>> {
-  "use cache";
-  cacheLife({ revalidate: 300 }); // 5분 캐시
-
+  // 캐시 없음: 관리자 액션 후 즉각적인 상태 반영을 위해 항상 최신 데이터 조회
   const admin = createAdminClient();
   const offset = (page - 1) * limit;
 
@@ -319,9 +317,7 @@ export async function getSummarizeJobs({
   page?: number;
   limit?: number;
 }): Promise<PaginatedResult<SummarizeJobDetail>> {
-  "use cache";
-  cacheLife({ revalidate: 300 }); // 5분 캐시
-
+  // 캐시 없음: 관리자 액션 후 즉각적인 상태 반영을 위해 항상 최신 데이터 조회
   const admin = createAdminClient();
   const offset = (page - 1) * limit;
 
@@ -378,9 +374,7 @@ export async function getSummarizeJobs({
  * 마지막 Cron 실행, 워커 마지막 활동, 테이블별 레코드 수
  */
 export async function getSystemStatus(): Promise<SystemStatus> {
-  "use cache";
-  cacheLife({ revalidate: 300 }); // 5분 캐시
-
+  // 캐시 없음: 관리자 모니터링은 항상 최신 상태 반영
   const admin = createAdminClient();
 
   const [lastCronResult, lastWorkerResult, statsResult] = await Promise.all([

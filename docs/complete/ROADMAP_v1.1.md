@@ -623,7 +623,7 @@
   - 상세: `components/admin/user-list.tsx` 신규. Client Component. 사용자 테이블 (이메일, 이름, 가입일, 마지막 로그인, 역할, 프로바이더). 검색 (이메일/이름). 페이지네이션. 역할 변경 드롭다운 (user/admin). 계정 상태 토글 (활성/정지). 사용자 클릭 시 상세 보기.
   - 관련 파일: `components/admin/user-list.tsx`
 
-- [x] 태스크 1d.4.3: 사용자 상세 정보 UI 컴포넌트 구현
+- [ ] 태스크 1d.4.3: 사용자 상세 정보 UI 컴포넌트 구현 (미구현 — v1.2 이후 예정)
   - 상세: `components/admin/user-detail.tsx` 신규. Client Component. 프로필 정보, 북마크 수, 설정 내용, 활동 이력. 역할/상태 변경 버튼.
   - 관련 파일: `components/admin/user-detail.tsx`
 

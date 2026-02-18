@@ -65,6 +65,14 @@ export async function PUT(
         details: { role } as Json,
       });
     } else if (action === "ban") {
+      // 자기 자신 계정 정지 금지
+      if (adminId === userId) {
+        return NextResponse.json(
+          { error: "자신의 계정은 정지할 수 없습니다" },
+          { status: 400 },
+        );
+      }
+
       const { banned } = body as { action: "ban"; banned: boolean };
 
       const { error } = await admin.auth.admin.updateUserById(userId, {

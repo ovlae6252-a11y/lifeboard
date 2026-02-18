@@ -58,7 +58,8 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       users: users.map(transformUser),
-      total: data.total ?? 0,
+      // 이메일 필터 적용 시 필터링된 결과 수를, 아닐 때는 전체 사용자 수를 반환
+      total: emailFilter ? users.length : (data.total ?? 0),
     });
   } catch (error) {
     return errorResponse(error);
