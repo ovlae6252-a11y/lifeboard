@@ -78,6 +78,7 @@ export type Database = {
           is_summarized: boolean
           is_valid: boolean
           representative_article_id: string | null
+          representative_published_at: string | null
           summarized_at: string | null
         }
         Insert: {
@@ -89,6 +90,7 @@ export type Database = {
           is_summarized?: boolean
           is_valid?: boolean
           representative_article_id?: string | null
+          representative_published_at?: string | null
           summarized_at?: string | null
         }
         Update: {
@@ -100,6 +102,7 @@ export type Database = {
           is_summarized?: boolean
           is_valid?: boolean
           representative_article_id?: string | null
+          representative_published_at?: string | null
           summarized_at?: string | null
         }
         Relationships: [

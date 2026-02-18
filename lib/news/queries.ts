@@ -125,7 +125,10 @@ export async function getNewsGroups(options?: {
   }
 
   query = query
-    .order("created_at", { ascending: false })
+    .order("representative_published_at", {
+      ascending: false,
+      nullsFirst: false,
+    })
     .range(offset, offset + limit - 1);
 
   const { data, error, count } = await query.returns<NewsGroupRaw[]>();
