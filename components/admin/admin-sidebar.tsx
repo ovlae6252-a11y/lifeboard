@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Activity,
   ArrowLeft,
   LayoutDashboard,
   Newspaper,
@@ -34,6 +35,12 @@ const navItems = [
     href: "/admin/users",
     label: "사용자 관리",
     icon: Users,
+    exact: false,
+  },
+  {
+    href: "/admin/monitoring",
+    label: "시스템 모니터링",
+    icon: Activity,
     exact: false,
   },
 ];

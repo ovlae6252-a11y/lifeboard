@@ -1,18 +1,18 @@
 import { Suspense } from "react";
-import { ModerationTabs } from "@/components/admin/moderation-tabs";
+import { MonitoringTabs } from "@/components/admin/monitoring-tabs";
 
-export default function AdminModerationPage() {
+export default function AdminMonitoringPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">콘텐츠 모더레이션</h1>
+        <h1 className="text-2xl font-bold">시스템 모니터링</h1>
         <p className="text-muted-foreground text-sm">
-          콘텐츠 필터 및 품질 검증을 관리합니다
+          수집 로그, 요약 작업, 시스템 상태를 확인합니다
         </p>
       </div>
 
       <Suspense fallback={<TabsSkeleton />}>
-        <ModerationTabs />
+        <MonitoringTabs />
       </Suspense>
     </div>
   );
@@ -21,7 +21,7 @@ export default function AdminModerationPage() {
 function TabsSkeleton() {
   return (
     <div className="animate-pulse space-y-4">
-      <div className="bg-muted h-10 w-56 rounded-lg" />
+      <div className="bg-muted h-10 w-72 rounded-lg" />
       <div className="bg-card border-border h-96 rounded-lg border" />
     </div>
   );

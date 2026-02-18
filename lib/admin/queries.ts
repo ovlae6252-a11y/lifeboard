@@ -3,6 +3,45 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 // --- 타입 정의 ---
 
+export interface FetchLogDetail {
+  id: string;
+  source_id: string;
+  source_name: string;
+  status: string;
+  articles_fetched: number;
+  articles_new: number;
+  filtered_count: number;
+  error_message: string | null;
+  created_at: string;
+}
+
+export interface SummarizeJobDetail {
+  id: string;
+  group_id: string;
+  group_title: string | null;
+  status: string;
+  error_message: string | null;
+  created_at: string;
+  started_at: string | null;
+  completed_at: string | null;
+}
+
+export interface SystemStatus {
+  lastCronRun: string | null;
+  lastWorkerActivity: string | null;
+  tableStats: {
+    groups: number;
+    articles: number;
+    jobs: number;
+    logs: number;
+  };
+}
+
+export interface PaginatedResult<T> {
+  data: T[];
+  total: number;
+}
+
 export interface SystemStats {
   totalGroups: number;
   validGroups: number;
@@ -204,5 +243,188 @@ export async function getRecentActivity(): Promise<RecentActivity> {
   return {
     fetchLogs: (fetchLogsResult.data ?? []) as FetchLogItem[],
     summarizeJobs: (summarizeJobsResult.data ?? []) as SummarizeJobItem[],
+  };
+}
+
+/**
+ * 수집 로그 목록 조회 (페이지네이션 + 필터)
+ */
+export async function getFetchLogs({
+  sourceId,
+  dateFrom,
+  dateTo,
+  status,
+  page = 1,
+  limit = 20,
+}: {
+  sourceId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
+}): Promise<PaginatedResult<FetchLogDetail>> {
+  "use cache";
+  cacheLife({ revalidate: 300 }); // 5분 캐시
+
+  const admin = createAdminClient();
+  const offset = (page - 1) * limit;
+
+  let query = admin
+    .from("news_fetch_logs")
+    .select(
+      "id, source_id, status, articles_fetched, articles_new, filtered_count, error_message, created_at, news_sources!news_fetch_logs_source_id_fkey(name)",
+      { count: "exact" },
+    )
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (sourceId) query = query.eq("source_id", sourceId);
+  if (status) query = query.eq("status", status);
+  if (dateFrom) query = query.gte("created_at", dateFrom);
+  if (dateTo) query = query.lte("created_at", dateTo);
+
+  const { data, error, count } = await query;
+
+  if (error) {
+    console.error("수집 로그 조회 실패:", error.message);
+    return { data: [], total: 0 };
+  }
+
+  const transformed: FetchLogDetail[] = (data ?? []).map((row) => ({
+    id: row.id,
+    source_id: row.source_id,
+    source_name:
+      (row.news_sources as { name: string } | null)?.name ?? "알 수 없음",
+    status: row.status,
+    articles_fetched: row.articles_fetched,
+    articles_new: row.articles_new,
+    filtered_count: row.filtered_count,
+    error_message: row.error_message,
+    created_at: row.created_at,
+  }));
+
+  return { data: transformed, total: count ?? 0 };
+}
+
+/**
+ * 요약 작업 목록 조회 (페이지네이션 + 필터)
+ */
+export async function getSummarizeJobs({
+  status,
+  page = 1,
+  limit = 20,
+}: {
+  status?: string;
+  page?: number;
+  limit?: number;
+}): Promise<PaginatedResult<SummarizeJobDetail>> {
+  "use cache";
+  cacheLife({ revalidate: 300 }); // 5분 캐시
+
+  const admin = createAdminClient();
+  const offset = (page - 1) * limit;
+
+  let query = admin
+    .from("summarize_jobs")
+    .select(
+      "id, group_id, status, error_message, created_at, started_at, completed_at",
+      { count: "exact" },
+    )
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (status) query = query.eq("status", status);
+
+  const { data, error, count } = await query;
+
+  if (error) {
+    console.error("요약 작업 조회 실패:", error.message);
+    return { data: [], total: 0 };
+  }
+
+  // 그룹 ID 목록으로 대표 기사 제목 일괄 조회
+  const groupIds = [...new Set((data ?? []).map((j) => j.group_id))];
+  const titleMap: Record<string, string> = {};
+
+  if (groupIds.length > 0) {
+    const { data: groups } = await admin
+      .from("news_article_groups")
+      .select("id, news_articles!fk_representative_article(title)")
+      .in("id", groupIds);
+
+    for (const g of groups ?? []) {
+      const articles = g.news_articles as { title: string } | null;
+      titleMap[g.id] = articles?.title ?? "";
+    }
+  }
+
+  const transformed: SummarizeJobDetail[] = (data ?? []).map((row) => ({
+    id: row.id,
+    group_id: row.group_id,
+    group_title: titleMap[row.group_id] ?? null,
+    status: row.status,
+    error_message: row.error_message,
+    created_at: row.created_at,
+    started_at: row.started_at,
+    completed_at: row.completed_at,
+  }));
+
+  return { data: transformed, total: count ?? 0 };
+}
+
+/**
+ * 시스템 상태 조회
+ * 마지막 Cron 실행, 워커 마지막 활동, 테이블별 레코드 수
+ */
+export async function getSystemStatus(): Promise<SystemStatus> {
+  "use cache";
+  cacheLife({ revalidate: 300 }); // 5분 캐시
+
+  const admin = createAdminClient();
+
+  const [lastCronResult, lastWorkerResult, statsResult] = await Promise.all([
+    // 마지막 Cron 실행 (수집 로그 최신 시간)
+    admin
+      .from("news_fetch_logs")
+      .select("created_at")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    // 마지막 워커 활동 (완료된 요약 작업 최신 시간)
+    admin
+      .from("summarize_jobs")
+      .select("completed_at")
+      .eq("status", "completed")
+      .order("completed_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    // 테이블별 레코드 수
+    Promise.all([
+      admin
+        .from("news_article_groups")
+        .select("id", { count: "exact", head: true }),
+      admin
+        .from("news_articles")
+        .select("id", { count: "exact", head: true })
+        .eq("is_deleted", false),
+      admin.from("summarize_jobs").select("id", { count: "exact", head: true }),
+      admin
+        .from("news_fetch_logs")
+        .select("id", { count: "exact", head: true }),
+    ]),
+  ]);
+
+  const [groupsResult, articlesResult, jobsResult, logsResult] = statsResult;
+
+  return {
+    lastCronRun: lastCronResult.data?.created_at ?? null,
+    lastWorkerActivity: lastWorkerResult.data?.completed_at ?? null,
+    tableStats: {
+      groups: groupsResult.count ?? 0,
+      articles: articlesResult.count ?? 0,
+      jobs: jobsResult.count ?? 0,
+      logs: logsResult.count ?? 0,
+    },
   };
 }

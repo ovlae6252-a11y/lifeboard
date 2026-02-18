@@ -513,42 +513,42 @@
 
 ---
 
-### v1.1d: 날씨 + 위젯 + 관리자 확장 (예상 5~7일)
+### v1.1d: 날씨 + 위젯 + 관리자 확장 (완료: 2026-02-18)
 
 **목표:** 두 번째 라이프 데이터(날씨)를 추가하고, 대시보드 위젯 시스템을 구현하며, 관리자 기능을 확장(콘텐츠 모더레이션, 사용자 관리, 시스템 모니터링)한다.
 **완료 기준:** 대시보드에 날씨 위젯이 표시되고, 사용자가 위젯 표시/숨김을 설정할 수 있다. 관리자가 콘텐츠 필터 규칙, 사용자, 시스템 상태를 관리할 수 있다.
 
 #### 마일스톤 1d.1: 날씨 위젯 (F104)
 
-- [ ] 태스크 1d.1.1: OpenWeatherMap API 연동 모듈 구현
+- [x] 태스크 1d.1.1: OpenWeatherMap API 연동 모듈 구현
   - 상세: `lib/weather/api.ts` 신규. `getCurrentWeather(lat: number, lon: number)` - 현재 날씨 (온도, 상태, 아이콘, 최고/최저, 강수확률). `getHourlyForecast(lat: number, lon: number)` - 24시간 시간별 예보. `getWeeklyForecast(lat: number, lon: number)` - 7일 주간 예보. OpenWeatherMap Free tier API 호출. `WEATHER_API_KEY` 서버 전용 환경변수 사용. `use cache` 30분~1시간 캐싱.
   - 관련 파일: `lib/weather/api.ts`
 
-- [ ] 태스크 1d.1.2: 위치-좌표 매핑 데이터 구현
+- [x] 태스크 1d.1.2: 위치-좌표 매핑 데이터 구현
   - 상세: `lib/weather/locations.ts` 신규. 한국 주요 시/도 단위 위경도 매핑. 기본값: 서울 (37.5665, 126.9780). 사용자 설정(`user_preferences.weather_location`)과 연동.
   - 관련 파일: `lib/weather/locations.ts`
 
-- [ ] 태스크 1d.1.3: 환경 변수 설정 업데이트
+- [x] 태스크 1d.1.3: 환경 변수 설정 업데이트
   - 상세: `.env.local`에 `WEATHER_API_KEY` 추가. `.env.example`에 변수 템플릿 문서화.
   - 관련 파일: `.env.example`
 
-- [ ] 태스크 1d.1.4: 날씨 대시보드 위젯 컴포넌트 구현
+- [x] 태스크 1d.1.4: 날씨 대시보드 위젯 컴포넌트 구현
   - 상세: `components/weather/weather-widget.tsx` 신규. 현재 온도 (큰 텍스트), 날씨 상태 아이콘 (OpenWeatherMap 아이콘 URL 또는 lucide 아이콘 매핑), 최고/최저 온도, 강수확률 표시. shadcn/ui `Card` 기반. Server Component (`use cache` 활용).
   - 관련 파일: `components/weather/weather-widget.tsx`
 
-- [ ] 태스크 1d.1.5: 날씨 상세 페이지 구현 (`/protected/weather`)
+- [x] 태스크 1d.1.5: 날씨 상세 페이지 구현 (`/protected/weather`)
   - 상세: `app/protected/weather/page.tsx` 신규. Server Component. 현재 날씨 카드 + 시간별 예보 (24시간, 가로 스크롤 또는 그리드) + 주간 예보 (7일, 리스트). 위치 변경 드롭다운 (사용자 설정 연동). `Suspense` fallback 적용.
   - 관련 파일: `app/protected/weather/page.tsx`, `app/protected/weather/loading.tsx`
 
-- [ ] 태스크 1d.1.6: 네비게이션에 "날씨" 메뉴 추가
+- [x] 태스크 1d.1.6: 네비게이션에 "날씨" 메뉴 추가
   - 상세: 헤더/모바일 네비게이션에 "날씨" 링크 추가 (`/protected/weather`).
   - 관련 파일: `components/layout/header.tsx`, `components/layout/mobile-nav.tsx`
 
-- [ ] 태스크 1d.1.7: 대시보드에 날씨 위젯 배치
+- [x] 태스크 1d.1.7: 대시보드에 날씨 위젯 배치
   - 상세: `app/protected/page.tsx` 수정. 기존 뉴스 섹션 위 또는 옆에 `WeatherWidget` 컴포넌트 배치. `Suspense` fallback. 사용자 설정에서 위젯 숨김 시 표시 안 함 (F107 연동).
   - 관련 파일: `app/protected/page.tsx`
 
-- [ ] 태스크 1d.1.8: Playwright MCP 테스트 - 날씨 위젯 + 상세 페이지
+- [x] 태스크 1d.1.8: Playwright MCP 테스트 - 날씨 위젯 + 상세 페이지
   - 사전 조건: 태스크 1d.1.7 완료
   - 검증 항목:
     1. `browser_navigate`로 `/protected` 접근 -> 날씨 위젯 렌더링 확인
@@ -560,19 +560,19 @@
 
 #### 마일스톤 1d.2: 대시보드 위젯 시스템 (F107)
 
-- [ ] 태스크 1d.2.1: 위젯 설정 UI 컴포넌트 구현
+- [x] 태스크 1d.2.1: 위젯 설정 UI 컴포넌트 구현
   - 상세: `components/settings/widget-settings.tsx` 신규. Client Component. 위젯 목록 (뉴스, 날씨). 각 위젯별 표시/숨김 토글 스위치. 변경 시 `user_preferences.dashboard_config` API 호출로 저장. 기본값: 모든 위젯 표시.
   - 관련 파일: `components/settings/widget-settings.tsx`
 
-- [ ] 태스크 1d.2.2: 설정 페이지에 위젯 설정 섹션 추가
+- [x] 태스크 1d.2.2: 설정 페이지에 위젯 설정 섹션 추가
   - 상세: `app/protected/settings/page.tsx` 수정. 기존 프로필 + 카테고리 섹션 아래에 "대시보드 위젯" 섹션 추가. `WidgetSettings` 컴포넌트 배치.
   - 관련 파일: `app/protected/settings/page.tsx`
 
-- [ ] 태스크 1d.2.3: 대시보드에 위젯 설정 기반 조건부 렌더링 적용
+- [x] 태스크 1d.2.3: 대시보드에 위젯 설정 기반 조건부 렌더링 적용
   - 상세: `app/protected/page.tsx` 수정. `getUserPreferences()`로 `dashboard_config` 조회. 위젯 표시 여부에 따라 뉴스 섹션, 날씨 위젯 조건부 렌더링. 설정 미존재 시 기본값(모두 표시) 적용.
   - 관련 파일: `app/protected/page.tsx`
 
-- [ ] 태스크 1d.2.4: Playwright MCP 테스트 - 위젯 시스템
+- [x] 태스크 1d.2.4: Playwright MCP 테스트 - 위젯 시스템
   - 사전 조건: 태스크 1d.2.3 완료
   - 검증 항목:
     1. `browser_navigate`로 `/protected/settings` 접근 -> 위젯 설정 섹션 확인
@@ -584,27 +584,27 @@
 
 #### 마일스톤 1d.3: 콘텐츠 모더레이션 (F123)
 
-- [ ] 태스크 1d.3.1: 필터 관리 API Route 구현
+- [x] 태스크 1d.3.1: 필터 관리 API Route 구현
   - 상세: `app/api/admin/moderation/filters/route.ts` 신규. GET: 필터 규칙 목록 조회. POST: 필터 추가 (키워드 + 타입). PUT: 필터 수정 (키워드 변경, 활성/비활성 토글). DELETE: 필터 삭제. `requireAdmin()` 검증. 감사 로그 기록.
   - 관련 파일: `app/api/admin/moderation/filters/route.ts`
 
-- [ ] 태스크 1d.3.2: 품질 검토 API Route 구현
+- [x] 태스크 1d.3.2: 품질 검토 API Route 구현
   - 상세: `app/api/admin/moderation/quality/route.ts` 신규. GET: `is_valid = false`인 그룹 목록 + 요약 실패 그룹 목록 조회. PUT (action: 'approve'): `is_valid = true`로 변경 (수동 승인). PUT (action: 'reject'): 숨김 유지. POST (action: 'rerun'): 요약 재실행. `requireAdmin()` 검증. 감사 로그 기록.
   - 관련 파일: `app/api/admin/moderation/quality/route.ts`
 
-- [ ] 태스크 1d.3.3: 필터 관리 UI 컴포넌트 구현
+- [x] 태스크 1d.3.3: 필터 관리 UI 컴포넌트 구현
   - 상세: `components/admin/filter-manager.tsx` 신규. Client Component. 블랙리스트/화이트리스트 키워드 목록 (태그 형태). 키워드 추가 (입력 + 타입 선택). 키워드 삭제. 활성/비활성 토글. 필터 테스트 기능: 제목 입력 -> 필터링 여부 실시간 미리보기. 필터별 차단 기사 수 통계.
   - 관련 파일: `components/admin/filter-manager.tsx`
 
-- [ ] 태스크 1d.3.4: 품질 검토 큐 UI 컴포넌트 구현
+- [x] 태스크 1d.3.4: 품질 검토 큐 UI 컴포넌트 구현
   - 상세: `components/admin/quality-review-queue.tsx` 신규. Client Component. `is_valid = false` 그룹 목록 테이블. 각 항목: 대표 기사 제목, 실패 사유, 현재 요약 미리보기. "승인" (노출 복구) / "거부" (숨김 유지) / "재요약" 버튼.
   - 관련 파일: `components/admin/quality-review-queue.tsx`
 
-- [ ] 태스크 1d.3.5: 콘텐츠 모더레이션 페이지 구현 (`/admin/moderation`)
+- [x] 태스크 1d.3.5: 콘텐츠 모더레이션 페이지 구현 (`/admin/moderation`)
   - 상세: `app/admin/moderation/page.tsx` 신규. 탭 구성: 필터 관리, 품질 검토. URL `?tab=` 파라미터와 동기화.
   - 관련 파일: `app/admin/moderation/page.tsx`
 
-- [ ] 태스크 1d.3.6: Playwright MCP 테스트 - 콘텐츠 모더레이션
+- [x] 태스크 1d.3.6: Playwright MCP 테스트 - 콘텐츠 모더레이션
   - 사전 조건: 태스크 1d.3.5 완료
   - 검증 항목:
     1. `browser_navigate`로 관리자 로그인 후 `/admin/moderation` 접근 -> 탭 UI 확인
@@ -615,23 +615,23 @@
 
 #### 마일스톤 1d.4: 사용자 관리 (F124)
 
-- [ ] 태스크 1d.4.1: 사용자 관리 API Route 구현
+- [x] 태스크 1d.4.1: 사용자 관리 API Route 구현
   - 상세: `app/api/admin/users/route.ts` 신규. GET: 사용자 목록 조회 (`auth.admin.listUsers`, 페이지네이션, 검색 필터). `app/api/admin/users/[userId]/route.ts` 신규. PUT: 역할 변경 (`auth.admin.updateUserById`, `app_metadata.role`). 자기 자신 역할 변경 금지 (안전장치). PUT: 계정 상태 변경 (`banned_until` 활용). `requireAdmin()` 검증. 감사 로그 기록.
   - 관련 파일: `app/api/admin/users/route.ts`, `app/api/admin/users/[userId]/route.ts`
 
-- [ ] 태스크 1d.4.2: 사용자 목록 UI 컴포넌트 구현
+- [x] 태스크 1d.4.2: 사용자 목록 UI 컴포넌트 구현
   - 상세: `components/admin/user-list.tsx` 신규. Client Component. 사용자 테이블 (이메일, 이름, 가입일, 마지막 로그인, 역할, 프로바이더). 검색 (이메일/이름). 페이지네이션. 역할 변경 드롭다운 (user/admin). 계정 상태 토글 (활성/정지). 사용자 클릭 시 상세 보기.
   - 관련 파일: `components/admin/user-list.tsx`
 
-- [ ] 태스크 1d.4.3: 사용자 상세 정보 UI 컴포넌트 구현
+- [x] 태스크 1d.4.3: 사용자 상세 정보 UI 컴포넌트 구현
   - 상세: `components/admin/user-detail.tsx` 신규. Client Component. 프로필 정보, 북마크 수, 설정 내용, 활동 이력. 역할/상태 변경 버튼.
   - 관련 파일: `components/admin/user-detail.tsx`
 
-- [ ] 태스크 1d.4.4: 사용자 관리 페이지 구현 (`/admin/users`)
+- [x] 태스크 1d.4.4: 사용자 관리 페이지 구현 (`/admin/users`)
   - 상세: `app/admin/users/page.tsx` 신규. Server Component. 상단 통계 (총 사용자 수, 오늘 가입 수, 프로바이더별 분포). 사용자 목록.
   - 관련 파일: `app/admin/users/page.tsx`
 
-- [ ] 태스크 1d.4.5: Playwright MCP 테스트 - 사용자 관리
+- [x] 태스크 1d.4.5: Playwright MCP 테스트 - 사용자 관리
   - 사전 조건: 태스크 1d.4.4 완료
   - 검증 항목:
     1. `browser_navigate`로 관리자 로그인 후 `/admin/users` 접근 -> 사용자 목록 표시 확인
@@ -641,31 +641,31 @@
 
 #### 마일스톤 1d.5: 시스템 모니터링 (F125)
 
-- [ ] 태스크 1d.5.1: 모니터링 데이터 쿼리 함수 구현
+- [x] 태스크 1d.5.1: 모니터링 데이터 쿼리 함수 구현
   - 상세: `lib/admin/queries.ts`에 추가. `getFetchLogs(filters)` - 수집 로그 조회 (소스별, 날짜별, 성공/실패 필터). `getSummarizeJobs(filters)` - 요약 작업 조회 (상태별 필터). `getSystemStatus()` - 마지막 Cron 실행 시간, 워커 마지막 활동 시간 (최근 completed/processing 작업 타임스탬프 추정), 주요 테이블별 레코드 수.
   - 관련 파일: `lib/admin/queries.ts`
 
-- [ ] 태스크 1d.5.2: 모니터링 API Route 구현
+- [x] 태스크 1d.5.2: 모니터링 API Route 구현
   - 상세: `app/api/admin/monitoring/logs/route.ts` 신규. GET: 수집 로그 조회 (필터 + 페이지네이션). `app/api/admin/monitoring/jobs/route.ts` 신규. GET: 요약 작업 조회. PUT: 실패 작업 재시도 (status -> pending), 장기 processing 작업 리셋. `requireAdmin()` 검증.
   - 관련 파일: `app/api/admin/monitoring/logs/route.ts`, `app/api/admin/monitoring/jobs/route.ts`
 
-- [ ] 태스크 1d.5.3: 수집 로그 뷰어 컴포넌트 구현
+- [x] 태스크 1d.5.3: 수집 로그 뷰어 컴포넌트 구현
   - 상세: `components/admin/fetch-log-viewer.tsx` 신규. Client Component. 로그 테이블 (수집 시간, 소스명, 수집 건수, 신규 건수, 필터링 건수, 에러 메시지). 소스별/날짜별/성공-실패 필터. 최신순 정렬, 페이지네이션.
   - 관련 파일: `components/admin/fetch-log-viewer.tsx`
 
-- [ ] 태스크 1d.5.4: 요약 작업 관리 컴포넌트 구현
+- [x] 태스크 1d.5.4: 요약 작업 관리 컴포넌트 구현
   - 상세: `components/admin/job-manager.tsx` 신규. Client Component. 작업 테이블 (작업 ID, 그룹 제목, 상태, 생성 시간, 완료 시간, 소요 시간). 상태별 필터 (pending/processing/completed/failed). 실패 작업 재시도 버튼. 장기 processing 리셋 버튼. 상태별 작업 수/평균 처리 시간/성공률 통계.
   - 관련 파일: `components/admin/job-manager.tsx`
 
-- [ ] 태스크 1d.5.5: 시스템 상태 컴포넌트 구현
+- [x] 태스크 1d.5.5: 시스템 상태 컴포넌트 구현
   - 상세: `components/admin/system-status.tsx` 신규. Client Component. 파이프라인 상태 (마지막 Cron 실행, 다음 예정, 최근 결과). 워커 상태 (마지막 활동 시간, 활동 여부 추정). DB 상태 (주요 테이블별 레코드 수). 정리 현황 (마지막 cleanup 실행 시간).
   - 관련 파일: `components/admin/system-status.tsx`
 
-- [ ] 태스크 1d.5.6: 시스템 모니터링 페이지 구현 (`/admin/monitoring`)
+- [x] 태스크 1d.5.6: 시스템 모니터링 페이지 구현 (`/admin/monitoring`)
   - 상세: `app/admin/monitoring/page.tsx` 신규. 탭 구성: 수집 로그, 요약 작업, 시스템 상태. URL `?tab=` 파라미터와 동기화.
   - 관련 파일: `app/admin/monitoring/page.tsx`
 
-- [ ] 태스크 1d.5.7: Playwright MCP 테스트 - 시스템 모니터링
+- [x] 태스크 1d.5.7: Playwright MCP 테스트 - 시스템 모니터링
   - 사전 조건: 태스크 1d.5.6 완료
   - 검증 항목:
     1. `browser_navigate`로 관리자 로그인 후 `/admin/monitoring` 접근 -> 탭 UI 확인
@@ -677,13 +677,13 @@
 
 #### 마일스톤 1d.6: v1.1 통합 테스트 및 배포
 
-- [ ] 태스크 1d.6.1: v1.1 전체 빌드 검증
+- [x] 태스크 1d.6.1: v1.1 전체 빌드 검증
   - 상세: `npm run build` 실행하여 빌드 에러 없음 확인. `npm run lint` 통과 확인. `npm run type-check` 통과 확인.
 
-- [ ] 태스크 1d.6.2: 프로덕션 환경 변수 설정
+- [x] 태스크 1d.6.2: 프로덕션 환경 변수 설정
   - 상세: Vercel 프로젝트에 새 환경 변수 추가 (`WEATHER_API_KEY`). Supabase 대시보드에 OAuth 프로바이더 설정 최종 확인. RLS 정책 최종 확인.
 
-- [ ] 태스크 1d.6.3: Playwright MCP 테스트 - v1.1 전체 사용자 여정
+- [x] 태스크 1d.6.3: Playwright MCP 테스트 - v1.1 전체 사용자 여정
   - 검증 항목:
     1. `browser_navigate`로 `/` 접근 -> "시작하기" 클릭 -> 소셜 로그인 페이지
     2. 테스트 세션으로 로그인 -> 대시보드에 뉴스 위젯 + 날씨 위젯 확인
@@ -695,7 +695,7 @@
     8. `browser_console_messages`로 전체 여정에서 에러 없음 확인
   - 결과: 주요 화면별 스크린샷 저장
 
-- [ ] 태스크 1d.6.4: CLAUDE.md 업데이트
+- [x] 태스크 1d.6.4: CLAUDE.md 업데이트
   - 상세: 새로 추가된 라우트, 컴포넌트, DB 테이블, 환경 변수, 아키텍처 변경 사항을 CLAUDE.md에 반영.
   - 관련 파일: `CLAUDE.md`
 

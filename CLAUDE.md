@@ -6,12 +6,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 라이프보드(Lifeboard) - 인생의 모든 데이터를 한눈에 볼 수 있는 통합 대시보드. Next.js + Supabase 기반.
 
-- **현재 버전**: v1.1c (관리자 시스템 핵심 완료 - 역할 시스템, 관리자 대시보드, 뉴스 관리)
-- **MVP 상태**: Phase 0~5 완료 (2026-02-16), v1.1a 완료 (2026-02-16), v1.1b 완료 (2026-02-16), v1.1c 완료 (2026-02-18)
+- **현재 버전**: v1.1d (날씨 위젯 + 대시보드 위젯 시스템 + 관리자 확장 완료)
+- **MVP 상태**: Phase 0~5 완료 (2026-02-16), v1.1a 완료 (2026-02-16), v1.1b 완료 (2026-02-16), v1.1c 완료 (2026-02-18), v1.1d 완료 (2026-02-18)
 - **프로덕션**: https://lifeboard-omega.vercel.app
 - **GitHub**: https://github.com/ovlae6252-a11y/lifeboard
 
-**주요 기능** (v1.1c 기준):
+**주요 기능** (v1.1d 기준):
 - 소셜 로그인 (Google, Kakao OAuth 통합)
 - RSS 뉴스 자동 수집 (20+ 언론사, 하루 2회)
 - 유사 기사 그룹핑 (pg_trgm 기반, 유사도 임계값 0.5)
@@ -24,7 +24,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 뉴스 상세 페이지 (팩트 요약 + 관련 기사 목록)
 - 카테고리별 탐색 및 페이지네이션
 - 반응형 대시보드 + 다크모드
-- **관리자 시스템** (v1.1c): 관리자 역할 기반 접근 제어, 시스템 통계 대시보드, 뉴스 소스/그룹/기사 관리, 감사 로그
+- **날씨 위젯** (v1.1d): OpenWeatherMap 연동, 현재 날씨 + 시간별/주간 예보, 대시보드 위젯 (`WEATHER_API_KEY` 필요)
+- **대시보드 위젯 설정** (v1.1d): 뉴스/날씨 위젯 표시 토글 (`dashboard_config` JSONB)
+- **관리자 시스템** (v1.1c/v1.1d): 역할 기반 접근 제어, 통계 대시보드, 뉴스 관리, 콘텐츠 모더레이션, 사용자 관리, 시스템 모니터링, 감사 로그
 
 ## 개발 명령어
 
@@ -86,7 +88,8 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
 - `/protected` - 대시보드 (최신 뉴스 6개 프리뷰)
 - `/protected/news` - 뉴스 목록 페이지 (카테고리 탭 + 검색바 + 페이지네이션, v1.1b 검색 추가)
 - `/protected/news/[groupId]` - 뉴스 상세 페이지 (팩트 요약 + 관련 기사 + 북마크/공유 버튼, v1.1a/v1.1b)
-- `/protected/settings` - 사용자 설정 페이지 (프로필, 선호 카테고리, v1.1b)
+- `/protected/settings` - 사용자 설정 페이지 (프로필, 선호 카테고리, 대시보드 위젯 설정, v1.1b/v1.1d)
+- `/protected/weather` - 날씨 상세 페이지 (현재 날씨 + 시간별/주간 예보, v1.1d)
 - `/api/auth/dev-login` - 개발용 로그인 API (POST, 테스트 사용자 자동 생성, v1.1b)
 - `/api/news/collect` - RSS 수집 API (GET/POST, `CRON_SECRET` 인증 필요)
 - `/api/news/bookmarks` - 북마크 API (GET/POST/DELETE, 최대 100개 제한, v1.1b)
@@ -97,6 +100,16 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
 - `/api/admin/news/sources` - 뉴스 소스 관리 API (GET/POST/PUT/DELETE, RSS 유효성 검증)
 - `/api/admin/news/groups` - 뉴스 그룹 관리 API (GET/PUT, 숨김 토글 + 요약 재실행)
 - `/api/admin/news/articles` - 뉴스 기사 관리 API (GET 검색, DELETE soft-delete, PUT 그룹 변경)
+- `/admin/moderation` - 콘텐츠 모더레이션 (필터 관리/품질 검토 탭, v1.1d)
+- `/admin/users` - 사용자 관리 (역할 변경, 계정 정지, v1.1d)
+- `/admin/monitoring` - 시스템 모니터링 (수집 로그/요약 작업/시스템 상태 탭, v1.1d)
+- `/api/admin/moderation/filters` - 콘텐츠 필터 CRUD API (GET/POST/PUT/DELETE, v1.1d)
+- `/api/admin/moderation/quality` - 품질 검토 API (GET/PUT approve, POST rerun, v1.1d)
+- `/api/admin/users` - 사용자 목록 조회 API (GET, 페이지네이션 + 이메일 검색, v1.1d)
+- `/api/admin/users/[userId]` - 사용자 수정 API (PUT, 역할 변경/계정 정지, v1.1d)
+- `/api/admin/monitoring/logs` - 수집 로그 API (GET, 소스/상태/날짜 필터, v1.1d)
+- `/api/admin/monitoring/jobs` - 요약 작업 API (GET/PUT retry/reset, v1.1d)
+- `/api/admin/monitoring/status` - 시스템 상태 API (GET, lastCronRun/워커활동/DB통계, v1.1d)
 
 ### 컴포넌트 패턴
 
@@ -107,8 +120,10 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
   - `footer.tsx`는 Client Component (`new Date()` 사용)
   - `nav-links.ts` - Navigation 링크 상수 (대시보드, 뉴스, 설정, v1.1b 설정 추가)
 - `components/news/` - 뉴스 UI 컴포넌트. Server: `news-group-card.tsx`, `news-dashboard-section.tsx`, `news-empty-state.tsx`. Client: `relative-time.tsx`(상대 시간 자동 갱신), `bookmark-button.tsx`(useOptimistic), `news-search-bar.tsx`(URL 쿼리 관리), `news-pagination.tsx`, `share-button.tsx`. 마크다운: `markdown-fact.tsx`(react-markdown + remark-gfm)
-- `components/settings/` - 사용자 설정 (프로필, 선호 카테고리)
-- `components/admin/` - 관리자 UI 컴포넌트 (모두 Client Component, v1.1c). `admin-sidebar.tsx`(현재 경로 활성 상태), `stats-cards.tsx`, `pipeline-status.tsx`, `quality-metrics.tsx`, `collection-chart.tsx`/`category-chart.tsx`(shadcn/ui Recharts Bar+Pie), `recent-activity.tsx`, `news-source-manager.tsx`, `news-group-manager.tsx`, `news-article-manager.tsx`
+- `components/settings/` - 사용자 설정 (프로필, 선호 카테고리, `widget-settings.tsx` 대시보드 위젯 토글)
+- `components/weather/` - 날씨 UI 컴포넌트 (v1.1d). `weather-widget.tsx`(Server Component, 대시보드용), `hourly-forecast.tsx`, `weekly-forecast.tsx`
+- `lib/weather/` - 날씨 모듈 (v1.1d). `api.ts`(OpenWeatherMap API, "use cache" 30분), `locations.ts`(한국 17개 시/도 좌표), `icons.ts`(아이콘 매핑)
+- `components/admin/` - 관리자 UI 컴포넌트 (모두 Client Component). `admin-sidebar.tsx`(현재 경로 활성, 5개 섹션), `stats-cards.tsx`, `pipeline-status.tsx`, `quality-metrics.tsx`, `collection-chart.tsx`/`category-chart.tsx`(Recharts), `recent-activity.tsx`, `news-source-manager.tsx`, `news-group-manager.tsx`, `news-article-manager.tsx`, `filter-manager.tsx`(v1.1d), `quality-review-queue.tsx`(v1.1d), `moderation-tabs.tsx`(v1.1d), `user-list.tsx`(v1.1d), `fetch-log-viewer.tsx`(v1.1d), `job-manager.tsx`(v1.1d), `system-status.tsx`(v1.1d), `monitoring-tabs.tsx`(v1.1d)
 - `auth-button.tsx` - Server Component, 반드시 `<Suspense>` 안에서 사용
 
 ### 관리자 시스템 (v1.1c)
@@ -119,6 +134,9 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
 
 `lib/admin/queries.ts` - 관리자 데이터 조회 (모두 `createAdminClient()` 사용):
 - `getSystemStats()`, `getDailyCollectionStats(days)`, `getCategoryDistribution()`, `getRecentActivity()`
+- `getFetchLogs({ sourceId?, dateFrom?, dateTo?, status?, page, limit })` - 수집 로그 페이지네이션 조회 (v1.1d)
+- `getSummarizeJobs({ status?, page, limit })` - 요약 작업 페이지네이션 조회, 그룹 제목 포함 (v1.1d)
+- `getSystemStatus()` - 마지막 Cron 실행/워커 활동/테이블 레코드 수 (v1.1d)
 
 **프록시 관리자 보호**: `proxy.ts`(루트)에서 `/admin/*` 접근 시 세션 갱신 결과에서 `app_metadata.role`을 재사용. **`getClaims()` 이중 호출 금지** - 성능 저하 원인.
 
@@ -140,6 +158,7 @@ UPDATE auth.users SET raw_app_meta_data = raw_app_meta_data || '{"role": "admin"
 - `proxy.ts`(루트)가 middleware 역할이므로 `middleware.ts` 파일을 생성하면 안 됨
 - 언론사 이미지 도메인 추가 시 `next.config.ts`의 `images.remotePatterns` 배열에 항목 추가 필요
 - Vercel Cron 스케줄은 `vercel.json`에서 관리 (UTC 기준, 현재 23:00/11:00 = KST 8시/20시)
+- Supabase Auth Admin API (`auth.admin.listUsers()` 등)를 Server Component에서 직접 호출할 경우 `await connection()` (from `next/server`)으로 동적 렌더링 강제 필요 (프리렌더링 시 HANGING_PROMISE_REJECTION 방지)
 
 ### 뉴스 수집 파이프라인
 
@@ -218,6 +237,9 @@ SUPABASE_SERVICE_ROLE_KEY=<service-role-key>  # 서버 전용, 절대 클라이�
 # API 인증 (필수)
 CRON_SECRET=<랜덤-시크릿>                     # API Route 인증용 (Vercel Cron 자동 포함)
 
+# 날씨 (선택)
+WEATHER_API_KEY=<openweathermap-api-key>       # OpenWeatherMap Free tier, 미설정 시 날씨 위젯 숨김
+
 # 알림 (선택)
 SLACK_WEBHOOK_URL=<slack-webhook-url>          # 훅 알림용
 
@@ -231,7 +253,7 @@ TEST_USER_PASSWORD=TestPass1234!@
 
 ## 개발 참고
 
-- `docs/ROADMAP.md` - 개발 로드맵 (v1.0~v1.1c 완료, v1.1d 예정)
+- `docs/ROADMAP.md` - 개발 로드맵 (v1.0~v1.1d 완료, v1.2 예정)
 - `docs/PRD.md` - 제품 요구사항 문서 (v2.4, 2026-02-16)
 - `docs/ISSUE.md` - 알려진 이슈 및 버그 추적
 - `docs/complete/ROADMAP_v1.0.md` - v1.0 (Phase 0~5) 아카이브

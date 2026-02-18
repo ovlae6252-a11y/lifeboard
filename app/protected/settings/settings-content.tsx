@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUserPreferences } from "@/lib/user/preferences";
 import { ProfileSection } from "@/components/settings/profile-section";
 import { CategoryPreferences } from "@/components/settings/category-preferences";
+import { WidgetSettings } from "@/components/settings/widget-settings";
 
 export async function SettingsContent() {
   const supabase = await createClient();
@@ -34,6 +35,7 @@ export async function SettingsContent() {
         <CategoryPreferences
           initialCategories={preferences.preferred_categories}
         />
+        <WidgetSettings />
       </div>
     </div>
   );
