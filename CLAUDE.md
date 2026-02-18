@@ -35,8 +35,9 @@ npm run lint:fix        # ESLint 자동 수정
 npm run format          # Prettier 전체 포매팅
 npm run format:check    # Prettier 포매팅 상태 확인
 npm run type-check      # TypeScript 타입 검사
-npx playwright test     # E2E 테스트 실행
-npx playwright test --ui # 테스트 UI 모드
+npx playwright test                              # E2E 테스트 전체 실행
+npx playwright test tests/news-search.spec.ts    # 특정 테스트 파일 실행
+npx playwright test --ui                         # 테스트 UI 모드
 npx supabase db push    # DB 마이그레이션 적용 (원격 Supabase)
 ```
 
@@ -128,6 +129,8 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
 
 - `cacheComponents: true` 설정으로 인해 `export const runtime` 등 route segment config가 충돌할 수 있음. API Route에서는 `export const maxDuration`만 사용
 - `proxy.ts`(루트)가 middleware 역할이므로 `middleware.ts` 파일을 생성하면 안 됨
+- 언론사 이미지 도메인 추가 시 `next.config.ts`의 `images.remotePatterns` 배열에 항목 추가 필요
+- Vercel Cron 스케줄은 `vercel.json`에서 관리 (UTC 기준, 현재 23:00/11:00 = KST 8시/20시)
 
 ### 뉴스 수집 파이프라인
 
@@ -220,6 +223,7 @@ TEST_USER_PASSWORD=TestPass1234!@
 
 - `docs/ROADMAP.md` - 개발 로드맵 (v1.0 완료, v1.1a 완료, v1.1b 완료)
 - `docs/PRD.md` - 제품 요구사항 문서 (v2.4, 2026-02-16)
+- `docs/ISSUE.md` - 알려진 이슈 및 버그 추적
 - `docs/complete/ROADMAP_v1.0.md` - v1.0 (Phase 0~5) 아카이브
 
 ## 태스크 관리 규칙
