@@ -52,6 +52,16 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // /admin/* 라우트 보호: 관리자 역할이 없는 경우 /protected로 리다이렉트
+  // getClaims() 재호출 금지 — 위에서 선언한 user 변수 재사용
+  if (request.nextUrl.pathname.startsWith("/admin")) {
+    if (!user || user.app_metadata?.role !== "admin") {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/protected";
+      return NextResponse.redirect(redirectUrl);
+    }
+  }
+
   // IMPORTANT: You *must* return the supabaseResponse object as it is.
   // If you're creating a new response object with NextResponse.next() make sure to:
   // 1. Pass the request in it, like so:

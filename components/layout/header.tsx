@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { AuthButton } from "@/components/auth-button";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import { AdminLink } from "./admin-link";
 import { MobileNav } from "./mobile-nav";
 import { navLinks } from "./nav-links";
 
@@ -26,6 +27,9 @@ export function Header() {
                 {label}
               </Link>
             ))}
+            <Suspense fallback={null}>
+              <AdminLink />
+            </Suspense>
           </nav>
         </div>
 
