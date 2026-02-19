@@ -223,36 +223,52 @@ MVP (Phase 0~5) 및 v1.1(a~d) 전체가 완료되어 프로덕션에서 운영 �
 
 ### 권장 구현 단계
 
-| 단계  | 포함 기능        | 핵심 목표                                  |
-| ----- | ---------------- | ------------------------------------------ |
-| v1.2a | F200, F206       | 뉴스 시스템 대폭 개편 + 날씨 위치 개선     |
-| v1.2b | F201, F207       | 빠른 메모 + 선호 카테고리 개인화 실제 활용 |
-| v1.2c | F208, F209, F210 | 품질 개선 (SEO, 에러 처리, 성능)           |
-| v1.2d | F202, F203, F211 | 알림 + 트렌드 + Naver 로그인               |
+| 단계  | 포함 기능        | 핵심 목표                                  | 비고                                     |
+| ----- | ---------------- | ------------------------------------------ | ---------------------------------------- |
+| v1.2a | F200, F206       | 뉴스 요약 서술형 전환 + 날씨 위치 개선     | F200은 Phase 1(description 기반)만 포함  |
+| v1.2b | F201, F207       | 빠른 메모 + 선호 카테고리 개인화 실제 활용 | F201 RLS 정책 필수 포함                  |
+| v1.2c | F208, F209, F210 | 품질 개선 (SEO, 에러 처리, 성능)           | 가장 리스크 낮은 단계                    |
+| v1.2d | F202, F203, F211 | 알림 + 트렌드 + Naver 로그인               | F211은 PoC 우선, F202는 인프라 준비 선행 |
 
 ---
 
 ### F200: 뉴스 내용정리 시스템 개편 (Must)
 
-**문제**: AI 요약이 "한줄 요약" 수준의 팩트 불릿 포인트만 추출함. 관리자/사용자 모두 정리된 기사 형태를 원함. 현재 `scripts/summarizer.ts`에서 title + description만 입력하며 본문 미포함.
+**문제**: AI 요약이 "한줄 요약" 수준의 팩트 불릿 포인트만 추출함. 관리자/사용자 모두 정리된 기사 형태를 원함. 현재 `scripts/summarizer.ts`에서 title + description(RSS 짧은 요약)만 입력하며 기사 본문 미포함.
 
-**목표**: AI가 그룹 내 기사들을 종합하여 실제 기사처럼 서술형으로 작성 (객관적 정보만).
+**현재 상태**:
 
-**파이프라인 변경**:
+- `news_articles` 테이블에 기사 전문(content) 컬럼 없음. `description`은 RSS 피드의 1~2문장 요약
+- `scripts/worker.ts`에서 `select("title, description")`으로만 조회
+- `scripts/llm-grouper.ts` + `grouping_jobs` 테이블을 통한 LLM 기반 그룹 병합이 이미 운영 중
+- `fact-summary-card.tsx`에서 `parseFacts()`로 불릿 포인트 파싱 후 렌더링
 
-1. RSS 수집 후 기존 pg_trgm 그룹핑에 더해 Ollama 기반 의미론적 유사도 보완 검토
-2. 그룹별로 AI가 제목 + 본문 전체를 입력받아 실제 기사 형식으로 서술형 작성
-3. 원본 기사는 "관련 기사 링크"로만 남기고 수집 본문 데이터 정리
+**목표**: AI가 그룹 내 기사들의 정보를 종합하여 서술형으로 작성 (객관적 정보만).
+
+**구현 방향 (2단계)**:
+
+1. **Phase 1: description 기반 서술형 전환** (v1.2a 범위)
+   - 기존 title + description만으로 프롬프트를 전면 교체하여 서술형 작성
+   - 불릿 포인트 대신 2~3 문단의 서술형 마크다운 출력
+   - fact-summary-card.tsx에서 `parseFacts()` 제거, `react-markdown`으로 전체 서술문 렌더링
+   - 한국어 검증 로직은 그대로 유지 (validateKoreanContent)
+
+2. **Phase 2: 본문 크롤링 도입 검토** (v1.2 이후, 별도 PoC 필요)
+   - `cheerio`(이미 dependencies에 존재)로 기사 URL에서 본문 추출
+   - `news_articles`에 `content text` 컬럼 추가 마이그레이션
+   - **리스크**: 저작권/robots.txt 위반, 언론사별 HTML 구조 다양성, 안티봇 대응
+   - PoC에서 주요 5개 언론사 크롤링 성공률/품질을 검증한 후 도입 결정
+
+**참고**: LLM 기반 그룹 병합(`llm-grouper.ts` + `grouping_jobs`)은 이미 운영 중이므로 F200 범위에 포함하지 않음.
 
 **영향 파일**:
 
-| 파일                                    | 변경 내용                          |
-| --------------------------------------- | ---------------------------------- |
-| `scripts/summarizer.ts`                 | 프롬프트 전면 교체, 본문 입력 추가 |
-| `scripts/worker.ts`                     | 기사 본문 조회 로직 추가           |
-| `lib/news/queries.ts`                   | 서술형 요약 조회 지원              |
-| `components/news/fact-summary-card.tsx` | 서술형 렌더링으로 변경             |
-| `supabase/migrations/`                  | fact_summary 컬럼 타입/제약 검토   |
+| 파일                                    | 변경 내용                                                     |
+| --------------------------------------- | ------------------------------------------------------------- |
+| `scripts/summarizer.ts`                 | 프롬프트 전면 교체 (불릿→서술형), ArticleForSummary 타입 유지 |
+| `components/news/fact-summary-card.tsx` | parseFacts() 제거, react-markdown으로 서술문 렌더링           |
+| `lib/utils/parse-facts.ts`              | 서술형 전환 후 미사용 시 제거 검토                            |
+| `components/news/news-group-card.tsx`   | 카드 내 요약 미리보기 렌더링 방식 조정                        |
 
 ---
 
@@ -267,15 +283,48 @@ MVP (Phase 0~5) 및 v1.1(a~d) 전체가 완료되어 프로덕션에서 운영 �
 ```sql
 create table memos (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users not null,
-  content text not null,
+  user_id uuid references auth.users(id) on delete cascade not null,
+  content text not null check (char_length(content) <= 5000),
   is_pinned boolean default false,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
+
+-- RLS 활성화
+alter table public.memos enable row level security;
+
+-- RLS 정책
+create policy "본인 메모 조회" on public.memos for select using (auth.uid() = user_id);
+create policy "본인 메모 삽입" on public.memos for insert with check (auth.uid() = user_id);
+create policy "본인 메모 수정" on public.memos for update using (auth.uid() = user_id);
+create policy "본인 메모 삭제" on public.memos for delete using (auth.uid() = user_id);
+
+-- 인덱스
+create index idx_memos_user_id on public.memos(user_id);
+create index idx_memos_pinned on public.memos(user_id, is_pinned desc, updated_at desc);
 ```
 
-**영향 파일**: `app/protected/memos/`, `components/memos/`, `api/memos/`, 마이그레이션 파일
+**제약사항**:
+
+- 사용자당 최대 50개 메모 제한 (API Route에서 검증)
+- 메모 본문 최대 5,000자 (DB check constraint)
+- 마크다운 렌더링은 기존 `react-markdown` + `remark-gfm` 재사용 (`MarkdownFact` 패턴 참고)
+
+**대시보드 통합**:
+
+- `dashboard_config`에 `showMemos` 토글 추가 (기본값 true)
+- `widget-settings.tsx`에 메모 위젯 토글 항목 추가
+
+**영향 파일**:
+
+| 파일                                      | 변경 내용                                |
+| ----------------------------------------- | ---------------------------------------- |
+| `supabase/migrations/`                    | memos 테이블 + RLS + 인덱스 마이그레이션 |
+| `app/api/memos/route.ts`                  | 메모 CRUD API (GET/POST/PUT/DELETE)      |
+| `components/memos/memo-widget.tsx`        | 대시보드용 메모 위젯 (Client Component)  |
+| `components/memos/memo-editor.tsx`        | 메모 편집 컴포넌트 (마크다운 입력)       |
+| `app/protected/page.tsx`                  | 대시보드에 메모 위젯 섹션 추가           |
+| `components/settings/widget-settings.tsx` | showMemos 토글 추가                      |
 
 ---
 
@@ -285,7 +334,19 @@ create table memos (
 
 **목표**: 사용자가 선택한 시간에 관심 카테고리 뉴스 요약을 이메일로 발송. 설정 페이지에서 활성화/빈도 설정.
 
-**구현 방향**: Supabase Edge Function + Resend (이메일 서비스) 조합. Vercel Cron으로 트리거.
+**구현 방향**: API Route + Resend (이메일 서비스) 조합. Vercel Cron으로 트리거.
+
+- Supabase Edge Function 대신 **API Route**가 더 적합 (기존 인프라와 일관성, Vercel Cron 직접 트리거 가능)
+- `/api/email/digest` Route Handler에서 `email_digest_enabled=true`인 사용자 조회 → 선호 카테고리 기반 뉴스 → Resend로 발송
+
+**필요 환경변수**:
+
+| 변수명           | 필수 | 설명                                      |
+| ---------------- | ---- | ----------------------------------------- |
+| `RESEND_API_KEY` | 필수 | Resend 이메일 서비스 API 키               |
+| `EMAIL_FROM`     | 필수 | 발신자 이메일 주소 (도메인 DNS 설정 필요) |
+
+**사전 준비**: Resend 계정 생성, 발신자 도메인 DNS(SPF/DKIM) 설정, `vercel.json`에 Cron 추가
 
 ---
 
@@ -296,6 +357,10 @@ create table memos (
 **목표**: 기간별 인기 키워드 시각화, 카테고리 분포 트렌드, 뉴스 볼륨 그래프.
 
 **구현 방향**: 기존 Recharts 인프라 활용. 관리자 대시보드의 차트 패턴 재사용.
+
+**키워드 추출 방법**: `news_article_groups`의 대표 기사 제목에서 단어 빈도 집계. PostgreSQL의 `to_tsvector('simple', title)` + `ts_stat`으로 서버 사이드 처리. 별도의 형태소 분석 라이브러리 불필요 (한국어는 단어 경계가 불명확하므로 2~4글자 연속 한글을 추출하는 간단한 접근도 고려).
+
+**영향 파일**: `/protected/trends/page.tsx` (신규), `components/trends/` (신규), `lib/news/trends.ts` (신규 쿼리)
 
 ---
 
@@ -321,15 +386,31 @@ create table memos (
 - 날씨 위젯/페이지에서 직접 위치 변경 드롭다운 추가 (설정 페이지 이동 불필요)
 - 야간 아이콘 분리 (`lib/weather/icons.ts`에서 `01n` → Moon 등)
 
+**구현 패턴 (Server/Client 하이브리드)**:
+
+`weather-widget.tsx`는 현재 async Server Component이며 `"use cache"` 함수로 데이터를 캐시한다. 인라인 위치 변경 드롭다운은 사용자 인터랙션이므로 다음과 같이 분리:
+
+1. `WeatherWidgetWrapper` (Client Component): 위치 선택 상태 관리 + 위치 변경 드롭다운 UI
+2. `WeatherWidgetContent` (Server Component): 날씨 데이터 페칭 + 렌더링 (기존 weather-widget.tsx 역할)
+3. 위치 변경 시 `fetch('/api/user/preferences', { method: 'PUT', body: { weather_location } })` → `router.refresh()`로 서버 컴포넌트 리렌더
+
+**Geolocation 자동 추천 플로우**:
+
+1. Client Component에서 `navigator.geolocation.getCurrentPosition()` 호출
+2. 좌표를 `LOCATIONS` 매핑에서 최소 거리 시/도로 변환 (Haversine 거리 계산)
+3. `user_preferences.weather_location`이 기본값("서울")이고 Geolocation 결과가 다른 도시면 자동 저장 제안 (Toast)
+4. **Geolocation 권한 거부 또는 미지원 시 기본값 "서울" 유지** (에러 무시)
+
 **영향 파일**:
 
-| 파일                                      | 변경 내용                          |
-| ----------------------------------------- | ---------------------------------- |
-| `lib/weather/locations.ts`                | 기본값 제거, Geolocation 유틸 추가 |
-| `lib/weather/icons.ts`                    | 야간 아이콘 매핑 추가              |
-| `components/weather/weather-widget.tsx`   | 위치 변경 드롭다운 추가            |
-| `app/protected/weather/page.tsx`          | 인라인 위치 변경 UI                |
-| `components/settings/widget-settings.tsx` | 날씨 위치 설정 통합                |
+| 파일                                             | 변경 내용                                       |
+| ------------------------------------------------ | ----------------------------------------------- |
+| `lib/weather/locations.ts`                       | Geolocation 좌표→시/도 매핑 유틸 함수 추가      |
+| `lib/weather/icons.ts`                           | 야간 아이콘 매핑 추가 (01n→Moon, 02n→CloudMoon) |
+| `components/weather/weather-widget.tsx`          | Client 래퍼 + Server 콘텐츠 분리                |
+| `components/weather/weather-location-select.tsx` | 위치 선택 드롭다운 (Client Component, 신규)     |
+| `app/protected/weather/page.tsx`                 | 인라인 위치 변경 UI 통합                        |
+| `components/settings/widget-settings.tsx`        | 기존 위치 설정과 통합 (중복 제거)               |
 
 ---
 
@@ -343,14 +424,28 @@ create table memos (
 - 뉴스 페이지: 선호 카테고리를 기본 활성 탭으로 설정 (설정된 경우)
 - 뉴스 없을 때 선호 카테고리 기반 추천 메시지
 
+**구현 패턴**:
+
+1. **대시보드 뉴스 섹션** (`news-dashboard-section.tsx`):
+   - 현재 `getLatestNewsGroups(6)` → `getNewsGroups({ limit: 6 })` 호출
+   - `getNewsGroups`는 이미 `category` 파라미터 지원 → 선호 카테고리 첫 번째 값으로 필터링
+   - `DashboardContent` (부모 Server Component)에서 이미 `prefs`를 조회하므로, preferred_categories를 props로 전달
+
+2. **뉴스 페이지 기본 탭** (`news/page.tsx`):
+   - `NewsCategoryTabs`에 `defaultCategory` prop 추가
+   - URL에 `?category=` 파라미터가 없을 때만 defaultCategory 적용
+   - 서버에서 선호 카테고리 조회 → NewsContent에서 NewsCategoryTabs에 전달하는 대신, **URL redirect 방식** 채택: searchParams에 category가 없고 선호 카테고리가 설정되어 있으면 `redirect(`/protected/news?category=${preferred}`)` — 이렇게 하면 Client Component(NewsCategoryTabs) 수정 불필요
+
+3. **빈 상태 메시지**: 선호 카테고리가 설정되어 있으면 "'{카테고리명}' 카테고리의 뉴스가 아직 없습니다" 표시
+
 **영향 파일**:
 
-| 파일                                         | 변경 내용                          |
-| -------------------------------------------- | ---------------------------------- |
-| `lib/user/preferences.ts`                    | getCachedUserPreferences 함수 추가 |
-| `app/protected/news/page.tsx`                | 선호 카테고리 기반 기본 탭 설정    |
-| `components/news/news-dashboard-section.tsx` | 선호 카테고리 필터링 로직 추가     |
-| `components/news/news-empty-state.tsx`       | 선호 카테고리 기반 메시지 개선     |
+| 파일                                         | 변경 내용                                               |
+| -------------------------------------------- | ------------------------------------------------------- |
+| `app/protected/news/page.tsx`                | searchParams에 category 없으면 선호 카테고리로 redirect |
+| `components/news/news-dashboard-section.tsx` | preferredCategories prop 수신, 카테고리 필터링 적용     |
+| `app/protected/page.tsx`                     | NewsDashboardSection에 preferredCategories props 전달   |
+| `components/news/news-empty-state.tsx`       | 선호 카테고리 기반 메시지 개선 (선택적)                 |
 
 ---
 
@@ -384,12 +479,16 @@ create table memos (
 
 **문제**: `/admin/*`, `/protected` 대시보드, `/protected/settings`에 `error.tsx`가 없음. 관리자 페이지 에러 발생 시 전체 앱 중단 가능.
 
+**현재 상태**: `error.tsx` 존재하는 곳: `app/protected/news/error.tsx`, `app/protected/weather/error.tsx` (2개만)
+
 **목표**:
 
 - `app/admin/error.tsx` 추가
 - `app/protected/error.tsx` 추가
 - `app/protected/settings/error.tsx` 추가
 - 날씨 위젯 에러 시 조용히 사라지는 대신 안내 메시지 표시
+
+**날씨 위젯 에러 처리 패턴**: `weather-widget.tsx`는 Server Component이며 현재 try-catch에서 `return null` (조용히 사라짐). error.tsx는 라우트 레벨에서만 동작하므로, **Server Component 내 try-catch에서 에러 시 안내 UI JSX를 직접 반환**하는 방식으로 변경. 예: `return <Card><p>날씨 정보를 불러올 수 없습니다</p></Card>`
 
 **기존 패턴 참고**: `app/protected/news/error.tsx`
 
@@ -402,16 +501,19 @@ create table memos (
 **목표**:
 
 - `news-dashboard-section.tsx`, `news/page.tsx`, `news/[groupId]/page.tsx`에서 `getUser()` → `getClaims()` (`.sub` 사용)
-- `settings-content.tsx`에서 이중 인증 호출 최적화
 - `widget-settings.tsx`에서 부모 Server Component 데이터를 props로 전달 (마운트 후 중복 GET 요청 제거)
+
+**참고**: `settings-content.tsx`의 `getUser()`는 `ProfileSection`이 `user.email`, `user.app_metadata`, `user.created_at` 등 전체 User 객체를 필요로 하므로 **제거 불가**. `getClaims()`는 인증 상태 확인 + userId 추출용으로만 사용되며 이미 최적화되어 있음.
 
 **영향 파일**:
 
-| 파일                                            | 변경 내용                         |
-| ----------------------------------------------- | --------------------------------- |
-| `components/news/news-dashboard-section.tsx:18` | getUser() → getClaims().sub       |
-| `app/protected/news/page.tsx:37`                | getUser() → getClaims().sub       |
-| `components/settings/widget-settings.tsx:38~54` | 부모 props 수신으로 중복 GET 제거 |
+| 파일                                            | 변경 내용                                      |
+| ----------------------------------------------- | ---------------------------------------------- |
+| `components/news/news-dashboard-section.tsx:16` | createClient()+getUser() → getClaims().sub     |
+| `app/protected/news/page.tsx:34`                | createClient()+getUser() → getClaims().sub     |
+| `app/protected/news/[groupId]/page.tsx:37`      | createClient()+getUser() → getClaims().sub     |
+| `components/settings/widget-settings.tsx`       | 부모 props로 preferences 수신, 마운트 GET 제거 |
+| `app/protected/settings/settings-content.tsx`   | WidgetSettings에 preferences props 전달        |
 
 ---
 
@@ -419,15 +521,29 @@ create table memos (
 
 **문제**: Naver는 OIDC 미지원으로 Supabase 네이티브 방식 불가. v1.1에서 이관됨.
 
-**목표**: Supabase Edge Function을 통한 커스텀 OAuth 2.0 → JWT 토큰 교환 구현.
+**목표**: 커스텀 OAuth 2.0 플로우로 Naver 로그인 지원.
 
-**구현 방향**:
+**구현 전 PoC 필요**: Supabase에서 커스텀 OAuth 프로바이더를 통합하는 공식 패턴이 없으므로, 아래 플로우의 실현 가능성을 사전 검증해야 함.
 
-1. Naver OAuth 2.0 인증 코드 수신 Edge Function
-2. Naver 사용자 정보 조회 → Supabase admin.createUser() 또는 기존 계정 연결
-3. 커스텀 JWT 발급 → 클라이언트 세션 설정
+**예상 구현 방향**:
 
-**영향 파일**: `components/social-login-buttons.tsx`, `app/auth/callback/route.ts`, Supabase Edge Function 신규
+1. 로그인 페이지에 "네이버 로그인" 버튼 추가 → Naver OAuth 인증 URL로 리다이렉트
+2. `/auth/callback/naver` (별도 Route Handler) 또는 `/api/auth/naver/callback`에서 인증 코드 수신
+3. 서버에서 Naver 액세스 토큰 교환 → Naver 사용자 정보(이메일, 이름, 프로필) 조회
+4. `supabase.auth.admin.createUser()` 또는 이메일로 기존 사용자 조회
+5. 세션 설정 방법 결정 필요: `admin.generateLink({ type: 'magiclink' })` 후 자동 리다이렉트, 또는 커스텀 JWT 발급
+6. 기존 Google/Kakao 계정과 같은 이메일인 경우 계정 연결(linking) 정책 결정 필요
+
+**한계 및 대안**: Naver가 향후 OIDC를 지원하면 Supabase 네이티브 방식으로 전환 가능. 또는 Supabase의 `signInWithIdToken` 커스텀 활용 가능성 조사.
+
+**필요 환경변수**:
+
+| 변수명                | 필수 | 설명                          |
+| --------------------- | ---- | ----------------------------- |
+| `NAVER_CLIENT_ID`     | 필수 | Naver OAuth 클라이언트 ID     |
+| `NAVER_CLIENT_SECRET` | 필수 | Naver OAuth 클라이언트 시크릿 |
+
+**영향 파일**: 로그인 버튼 컴포넌트, `/auth/callback/naver/route.ts` (신규), Naver OAuth 유틸리티 모듈 (신규)
 
 ---
 
@@ -549,6 +665,10 @@ create table memos (
 | `CRON_SECRET`                          | 필수 | API Route 인증용 (Vercel Cron 자동 포함)               |
 | `WEATHER_API_KEY`                      | 선택 | OpenWeatherMap API 키, 미설정 시 날씨 위젯 숨김        |
 | `SLACK_WEBHOOK_URL`                    | 선택 | Slack 알림 훅 URL                                      |
+| `RESEND_API_KEY`                       | 선택 | Resend 이메일 서비스 API 키 (F202 이메일 다이제스트)   |
+| `EMAIL_FROM`                           | 선택 | 발신자 이메일 주소 (F202, 도메인 DNS 설정 필요)        |
+| `NAVER_CLIENT_ID`                      | 선택 | Naver OAuth 클라이언트 ID (F211 Naver 로그인)          |
+| `NAVER_CLIENT_SECRET`                  | 선택 | Naver OAuth 클라이언트 시크릿 (F211 Naver 로그인)      |
 | `TEST_USER_EMAIL`                      | 로컬 | E2E 테스트 계정 이메일                                 |
 | `TEST_USER_PASSWORD`                   | 로컬 | E2E 테스트 계정 비밀번호                               |
 
