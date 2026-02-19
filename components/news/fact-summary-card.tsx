@@ -1,8 +1,7 @@
 import { CheckCircle2, ExternalLink, Loader2 } from "lucide-react";
 
-import { MarkdownFact } from "@/components/news/markdown-fact";
+import { MarkdownProse } from "@/components/news/markdown-prose";
 import { Card } from "@/components/ui/card";
-import { parseFacts } from "@/lib/utils/parse-facts";
 
 interface FactSummaryCardProps {
   factSummary: string | null;
@@ -24,15 +23,14 @@ function isInvalidSummary(text: string): boolean {
 }
 
 /**
- * 팩트 요약 카드 컴포넌트.
- * 핵심 내용을 불릿 리스트로 표시.
+ * 뉴스 요약 카드 컴포넌트.
+ * 서술형 마크다운 요약을 prose 스타일로 렌더링한다.
  * Server Component.
  */
 export function FactSummaryCard({
   factSummary,
   isSummarized,
 }: FactSummaryCardProps) {
-  const facts = factSummary ? parseFacts(factSummary) : [];
   const hasValidSummary =
     isSummarized && factSummary && !isInvalidSummary(factSummary);
 
@@ -55,18 +53,8 @@ export function FactSummaryCard({
           </h2>
         </div>
 
-        {hasValidSummary && facts.length > 0 ? (
-          <ul className="space-y-3">
-            {facts.map((fact, index) => (
-              <li key={index} className="flex gap-3">
-                <span
-                  className="bg-primary/60 mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full"
-                  aria-hidden="true"
-                />
-                <MarkdownFact content={fact} />
-              </li>
-            ))}
-          </ul>
+        {hasValidSummary && factSummary ? (
+          <MarkdownProse content={factSummary} />
         ) : isSummarized ? (
           <div className="text-muted-foreground">
             <p className="leading-relaxed">
