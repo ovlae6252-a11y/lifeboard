@@ -1,11 +1,14 @@
 import * as cheerio from "cheerio";
 
-const TIMEOUT_MS = 3000; // 3초 타임아웃
+const TIMEOUT_MS = 5000; // 5초 타임아웃
 const MAX_RETRIES = 2; // 최대 2회 재시도
+// 봇 차단 우회를 위해 브라우저 유사 User-Agent 사용
+const OG_USER_AGENT =
+  "Mozilla/5.0 (compatible; Lifeboard/1.0; +https://lifeboard-omega.vercel.app)";
 
 /**
  * URL에서 Open Graph 이미지 URL을 추출합니다.
- * 타임아웃 3초, 실패 시 null 반환 (에러 발생시켜서 전체 수집 중단하지 않음)
+ * 타임아웃 5초, 실패 시 null 반환 (에러 발생시켜서 전체 수집 중단하지 않음)
  */
 export async function fetchOgImage(url: string): Promise<string | null> {
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
@@ -16,7 +19,7 @@ export async function fetchOgImage(url: string): Promise<string | null> {
       const response = await fetch(url, {
         signal: controller.signal,
         headers: {
-          "User-Agent": "Lifeboard/1.0 (RSS Reader)",
+          "User-Agent": OG_USER_AGENT,
         },
       });
 

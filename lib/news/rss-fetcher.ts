@@ -11,6 +11,12 @@ const parser = new Parser({
   headers: {
     "User-Agent": "Lifeboard/1.0 (RSS Reader)",
   },
+  customFields: {
+    item: [
+      ["media:content", "media:content", { keepArray: false }],
+      ["media:thumbnail", "media:thumbnail", { keepArray: false }],
+    ],
+  },
 });
 
 // 단일 RSS 피드에서 기사 목록 파싱
@@ -21,8 +27,12 @@ export async function fetchRssFeed(feedUrl: string): Promise<RawArticle[]> {
     guid: item.guid || item.link || item.title || "",
     title: item.title || "",
     link: item.link || "",
-    description: item.contentSnippet || item.content || undefined,
-    author: item.creator || item.author || undefined,
+    description:
+      item.contentSnippet || item.content || item.summary || undefined,
+    author:
+      item.creator ||
+      (item as unknown as Record<string, string>).author ||
+      undefined,
     pubDate: item.pubDate || item.isoDate || undefined,
     categories: item.categories,
     imageUrl: extractImageUrl(item),
@@ -49,24 +59,48 @@ function isValidHttpUrl(url: string): boolean {
   }
 }
 
-// RSS 아이템에서 이미지 URL 추출
+// RSS 아이템에서 이미지 URL 추출 (4단계 우선순위)
 function extractImageUrl(item: Parser.Item): string | undefined {
-  // media:content (RSS 확장 필드)
-  const media = item as Record<string, Record<string, Record<string, string>>>;
+  const media = item as Record<string, unknown>;
+
+  // 1) media:content (customFields로 파싱된 RSS 확장 필드)
   try {
-    const url = media["media:content"]?.["$"]?.url;
+    const mc = media["media:content"] as Record<string, Record<string, string>>;
+    const url = mc?.["$"]?.url;
     if (typeof url === "string" && isValidHttpUrl(url)) return url;
   } catch {
     // 구조가 다를 수 있으므로 무시
   }
-  // enclosure
-  if (
-    item.enclosure?.url &&
-    item.enclosure.type?.startsWith("image/") &&
-    isValidHttpUrl(item.enclosure.url)
-  ) {
-    return item.enclosure.url;
+
+  // 2) media:thumbnail
+  try {
+    const mt = media["media:thumbnail"] as Record<
+      string,
+      Record<string, string>
+    >;
+    const url = mt?.["$"]?.url;
+    if (typeof url === "string" && isValidHttpUrl(url)) return url;
+  } catch {
+    // 구조가 다를 수 있으므로 무시
   }
+
+  // 3) enclosure (type 조건 완화: MIME type 또는 URL 확장자로 판별)
+  if (item.enclosure?.url && isValidHttpUrl(item.enclosure.url)) {
+    if (
+      item.enclosure.type?.startsWith("image/") ||
+      /\.(jpe?g|png|gif|webp|avif)/i.test(item.enclosure.url)
+    ) {
+      return item.enclosure.url;
+    }
+  }
+
+  // 4) description HTML 내 <img> 태그에서 추출
+  const html = (item.content as string | undefined) ?? "";
+  if (html) {
+    const match = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+    if (match?.[1] && isValidHttpUrl(match[1])) return match[1];
+  }
+
   return undefined;
 }
 
