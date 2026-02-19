@@ -1,6 +1,10 @@
 import Parser from "rss-parser";
 import type { RawArticle, ArticleInsert, NewsSource } from "./types";
 import { normalizeTitle } from "./normalize-title";
+import {
+  classifyFromRssCategories,
+  classifyFromTitle,
+} from "./category-classifier";
 
 const parser = new Parser({
   timeout: 5000,
@@ -83,7 +87,11 @@ export function toArticleInserts(
       description: raw.description ?? null,
       original_url: raw.link,
       author: raw.author ?? null,
-      category: source.category,
+      // RSS 카테고리 태그 → 제목 키워드 → 소스 기본 카테고리 순서로 분류
+      category:
+        classifyFromRssCategories(raw.categories) ??
+        classifyFromTitle(raw.title) ??
+        source.category,
       published_at: raw.pubDate ? safeParseDate(raw.pubDate) : null,
       image_url: raw.imageUrl ?? null,
     }));
