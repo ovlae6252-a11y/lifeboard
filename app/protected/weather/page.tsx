@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HourlyForecast } from "@/components/weather/hourly-forecast";
 import { WeeklyForecast } from "@/components/weather/weekly-forecast";
+import { WeatherLocationSelect } from "@/components/weather/weather-location-select";
 import { getWeatherIcon, getWeatherIconColor } from "@/lib/weather/icons";
 import {
   getCurrentWeather,
@@ -79,7 +80,10 @@ async function WeatherContent() {
     <div className="mx-auto max-w-2xl space-y-6">
       {/* 페이지 헤더 */}
       <div>
-        <h1 className="font-serif text-2xl font-bold tracking-tight">날씨</h1>
+        <div className="flex items-center justify-between gap-4">
+          <h1 className="font-serif text-2xl font-bold tracking-tight">날씨</h1>
+          <WeatherLocationSelect currentLocation={locationName} />
+        </div>
         <p className="text-muted-foreground mt-1 flex items-center gap-1 text-sm">
           <MapPin className="h-3.5 w-3.5" />
           {locationName} 날씨 정보

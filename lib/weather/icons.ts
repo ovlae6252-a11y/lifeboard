@@ -3,8 +3,10 @@ import {
   CloudDrizzle,
   CloudFog,
   CloudLightning,
+  CloudMoon,
   CloudRain,
   CloudSnow,
+  Moon,
   Sun,
   Wind,
   type LucideIcon,
@@ -17,10 +19,10 @@ import {
 const ICON_MAP: Record<string, LucideIcon> = {
   // 맑음
   "01d": Sun,
-  "01n": Sun,
+  "01n": Moon,
   // 구름 조금
   "02d": Cloud,
-  "02n": Cloud,
+  "02n": CloudMoon,
   // 구름 많음
   "03d": Cloud,
   "03n": Cloud,
@@ -56,7 +58,9 @@ export function getWeatherIcon(iconCode: string): LucideIcon {
  * 날씨 아이콘 코드에 따른 색상 클래스 반환
  */
 export function getWeatherIconColor(iconCode: string): string {
-  if (iconCode.startsWith("01")) return "text-amber-400"; // 맑음
+  if (iconCode === "01n") return "text-indigo-300"; // 맑은 밤
+  if (iconCode === "02n") return "text-slate-400"; // 구름 조금인 밤
+  if (iconCode.startsWith("01")) return "text-amber-400"; // 맑음 (낮)
   if (iconCode.startsWith("02") || iconCode.startsWith("03"))
     return "text-slate-400"; // 구름 조금/많음
   if (iconCode.startsWith("04")) return "text-slate-500"; // 흐림

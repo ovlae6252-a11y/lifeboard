@@ -1,7 +1,9 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { MapPin, Droplets, Wind } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getCurrentWeather } from "@/lib/weather/api";
 import { getLocationCoords, DEFAULT_LOCATION } from "@/lib/weather/locations";
 import { getWeatherIcon, getWeatherIconColor } from "@/lib/weather/icons";
@@ -11,10 +13,31 @@ interface WeatherWidgetProps {
   location?: string;
 }
 
-/** 대시보드용 날씨 위젯 (Server Component) */
-export async function WeatherWidget({
+/** 로딩 중 스켈레톤 UI */
+function WeatherWidgetSkeleton() {
+  return (
+    <Card>
+      <CardContent className="flex items-center justify-between gap-4 p-5">
+        <div className="flex flex-col gap-2">
+          <Skeleton className="h-3 w-16" />
+          <Skeleton className="h-12 w-24" />
+          <Skeleton className="h-3 w-20" />
+        </div>
+        <Skeleton className="h-14 w-14 rounded-full" />
+      </CardContent>
+    </Card>
+  );
+}
+
+/** 날씨 데이터 페칭 + 렌더링 (Server Component) */
+async function WeatherWidgetContent({
   location = DEFAULT_LOCATION,
 }: WeatherWidgetProps) {
+  // API 키 미설정 시 조용히 숨김
+  if (!process.env.WEATHER_API_KEY) {
+    return null;
+  }
+
   const locationName = location || DEFAULT_LOCATION;
   const { lat, lon } = getLocationCoords(locationName);
 
@@ -22,8 +45,16 @@ export async function WeatherWidget({
   try {
     weather = await getCurrentWeather(lat, lon);
   } catch {
-    // API 키 미설정 또는 호출 실패 시 null 처리
-    return null;
+    // API 호출 실패 시 안내 UI 반환
+    return (
+      <Card>
+        <CardContent className="p-5 text-center">
+          <p className="text-muted-foreground text-sm">
+            날씨 정보를 불러올 수 없습니다. 잠시 후 다시 시도해 주세요.
+          </p>
+        </CardContent>
+      </Card>
+    );
   }
 
   const WeatherIcon = getWeatherIcon(weather.iconCode);
@@ -74,5 +105,16 @@ export async function WeatherWidget({
         </CardContent>
       </Card>
     </Link>
+  );
+}
+
+/** 대시보드용 날씨 위젯. Suspense로 스켈레톤 로딩 처리. */
+export function WeatherWidget({
+  location = DEFAULT_LOCATION,
+}: WeatherWidgetProps) {
+  return (
+    <Suspense fallback={<WeatherWidgetSkeleton />}>
+      <WeatherWidgetContent location={location} />
+    </Suspense>
   );
 }

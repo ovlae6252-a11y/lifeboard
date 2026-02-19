@@ -38,3 +38,42 @@ export function getLocationCoords(name: string): LocationCoords {
 
 /** 지원하는 위치명 목록 */
 export const LOCATION_NAMES = Object.keys(LOCATIONS);
+
+/**
+ * 두 좌표 사이의 Haversine 거리를 계산한다 (km 단위).
+ */
+function haversineDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+/**
+ * 브라우저 Geolocation 좌표를 받아 가장 가까운 시/도 이름을 반환한다.
+ */
+export function findNearestLocation(lat: number, lon: number): string {
+  let nearest = DEFAULT_LOCATION;
+  let minDistance = Infinity;
+
+  for (const [name, coords] of Object.entries(LOCATIONS)) {
+    const distance = haversineDistance(lat, lon, coords.lat, coords.lon);
+    if (distance < minDistance) {
+      minDistance = distance;
+      nearest = name;
+    }
+  }
+
+  return nearest;
+}

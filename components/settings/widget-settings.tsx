@@ -7,14 +7,7 @@ import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { LOCATION_NAMES } from "@/lib/weather/locations";
+import { WeatherLocationSelect } from "@/components/weather/weather-location-select";
 
 interface DashboardConfig {
   showNews: boolean;
@@ -73,25 +66,6 @@ export function WidgetSettings() {
     }
   };
 
-  const handleLocationChange = async (value: string) => {
-    const prev = weatherLocation;
-    setWeatherLocation(value);
-
-    try {
-      const res = await fetch("/api/user/preferences", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ weather_location: value }),
-      });
-
-      if (!res.ok) throw new Error();
-      toast.success("날씨 위치가 저장되었습니다");
-    } catch {
-      setWeatherLocation(prev);
-      toast.error("설정 저장에 실패했습니다");
-    }
-  };
-
   const widgets = [
     {
       key: "showNews" as const,
@@ -146,22 +120,9 @@ export function WidgetSettings() {
                 </p>
               </div>
             </div>
-            <Select
-              value={weatherLocation}
-              onValueChange={handleLocationChange}
-              disabled={loading}
-            >
-              <SelectTrigger className="w-28">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {LOCATION_NAMES.map((name) => (
-                  <SelectItem key={name} value={name}>
-                    {name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {!loading && (
+              <WeatherLocationSelect currentLocation={weatherLocation} />
+            )}
           </div>
         </div>
       </CardContent>
