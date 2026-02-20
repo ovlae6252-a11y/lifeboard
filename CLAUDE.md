@@ -10,22 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **프로덕션**: https://lifeboard-omega.vercel.app
 - **GitHub**: https://github.com/ovlae6252-a11y/lifeboard
 
-**주요 기능** (v1.1d 기준):
-- 소셜 로그인 (Google, Kakao OAuth 통합)
-- RSS 뉴스 자동 수집 (20+ 언론사, 하루 2회)
-- 유사 기사 그룹핑 (pg_trgm 기반, 유사도 임계값 0.5)
-- AI 팩트 요약 (Ollama qwen2.5:14b, 한국어 품질 검증)
-- 콘텐츠 필터링 (키워드 블랙리스트/화이트리스트)
-- 뉴스 검색 (pg_trgm 유사도 기반, 제목 및 요약 검색)
-- 뉴스 북마크 (최대 100개, 낙관적 UI 업데이트)
-- 뉴스 공유 (팩트 요약/링크 복사, Toast 알림)
-- 사용자 설정 (프로필 확인, 선호 카테고리 관리)
-- 뉴스 상세 페이지 (팩트 요약 + 관련 기사 목록)
-- 카테고리별 탐색 및 페이지네이션
-- 반응형 대시보드 + 다크모드
-- **날씨 위젯** (v1.1d): OpenWeatherMap 연동, 현재 날씨 + 시간별/주간 예보, 대시보드 위젯 (`WEATHER_API_KEY` 필요)
-- **대시보드 위젯 설정** (v1.1d): 뉴스/날씨 위젯 표시 토글 (`dashboard_config` JSONB)
-- **관리자 시스템** (v1.1c/v1.1d): 역할 기반 접근 제어, 통계 대시보드, 뉴스 관리, 콘텐츠 모더레이션, 사용자 관리, 시스템 모니터링, 감사 로그
+주요 기능: 소셜 로그인, RSS 뉴스 자동 수집 (20+ 언론사, 하루 2회), 유사 기사 그룹핑 (pg_trgm + LLM), AI 팩트 요약 (Ollama qwen2.5:14b), 북마크, 검색, 날씨 위젯 (OpenWeatherMap), 관리자 시스템. 자세한 명세는 `docs/PRD.md` 참고.
 
 ## 개발 명령어
 
@@ -92,7 +77,9 @@ Next.js 16에서는 `proxy.ts` (프로젝트 루트)가 미들웨어 역할을 �
 - `/protected/weather` - 날씨 상세 페이지 (현재 날씨 + 시간별/주간 예보)
 - `/api/auth/dev-login` - 개발용 로그인 API (POST, 테스트 사용자 자동 생성)
 - `/api/news/collect` - RSS 수집 API (GET/POST, `CRON_SECRET` 인증 필요, `maxDuration = 60`)
+- `/api/news/revalidate` - 캐시 무효화 API (POST, `CRON_SECRET` 인증, Ollama 워커가 요약 완료 후 호출)
 - `/api/news/bookmarks` - 북마크 API (GET/POST/DELETE, 최대 100개 제한)
+- `/api/image-proxy` - 외부 이미지 프록시 (GET, 언론사 hotlink 방지 우회, 허용 도메인 화이트리스트)
 - `/api/user/preferences` - 사용자 설정 API (GET/PUT, preferred_categories 관리)
 - `/admin/*` - 관리자 전용 페이지 (`AdminSidebar` + `main` 레이아웃, `isAdmin()` 실패 시 `/protected` 리다이렉트)
 - `/admin` - 관리자 대시보드 (시스템 통계, 파이프라인 상태, 차트, 최근 활동 로그)
@@ -198,21 +185,23 @@ UPDATE auth.users SET raw_app_meta_data = raw_app_meta_data || '{"role": "admin"
 
 `scripts/` 디렉토리는 메인 Next.js 프로젝트와 **독립된 패키지**. `tsconfig.json`의 `exclude`에 포함되어 빌드 충돌 방지. Ollama가 설치된 PC에서 상주 실행.
 
-- `worker.ts` - 메인 워커 (Supabase Realtime 구독 + 30초 폴링, `isProcessing` 플래그로 동시성 제어)
+- `worker.ts` - 메인 워커. 요약(`summarize_jobs`)과 그룹핑(`grouping_jobs`) 두 큐를 병렬 처리. Supabase Realtime 구독 + 30초 폴링 폴백. `isSummarizingProcessing`/`isGroupingProcessing` 플래그로 동시성 제어. 배치 완료 후 `notifyRevalidate()`로 Next.js 캐시 무효화 호출.
 - `summarizer.ts` - Ollama 팩트 추출 모듈 (120초 타임아웃, 3회 재시도, 한국어 품질 검증)
-- **작업 흐름**: pending 감지 → 낙관적 잠금(WHERE status=pending) → 기사 조회 → Ollama 요약 → **한국어 검증** (`validateKoreanContent()`, 한글 비율 70% 이상) → 검증 성공 시 fact_summary 저장 + `is_valid = true`, 실패 시 `is_valid = false` + 에러 기록 → completed
-- 환경변수: `scripts/.env`에 별도 설정 (`OLLAMA_BASE_URL`, `OLLAMA_MODEL` 등 — `scripts/.env.example` 참고)
+- `llm-grouper.ts` - Ollama 기반 LLM 그룹핑 모듈 (`groupArticlesByLLM`, 60초 타임아웃, 2회 재시도). `grouping_jobs` 테이블의 기사들을 제목 유사성으로 LLM이 클러스터링.
+- **요약 흐름**: pending 감지 → 낙관적 잠금(WHERE status=pending) → 기사 조회 → Ollama 요약 → **한국어 검증** (`validateKoreanContent()`, 한글 비율 70% 이상) → fact_summary 저장 → 완료 후 `POST /api/news/revalidate` 호출
+- 환경변수: `scripts/.env`에 별도 설정 (`OLLAMA_BASE_URL`, `OLLAMA_MODEL`, `REVALIDATE_URL`, `CRON_SECRET` — `scripts/.env.example` 참고)
 
 ### DB 마이그레이션
 
-`supabase/migrations/`에 SQL 마이그레이션 파일 관리. `npx supabase db push`로 적용.
+`supabase/migrations/`에 SQL 마이그레이션 파일 관리 (현재 35개). `npx supabase db push`로 적용.
 
 **테이블:**
 - `news_sources` - RSS 피드 소스 (언론사명, 피드 URL, 카테고리)
 - `news_article_groups` - 유사 기사 그룹 (대표 기사, 팩트 요약, 카테고리, `is_valid` 품질 플래그)
 - `news_articles` - 개별 기사 (제목, URL, 소스, 그룹 연결, `is_deleted` soft delete)
 - `news_fetch_logs` - 수집 로그 (소스별 성공/실패, 수집 개수, `filtered_count`)
-- `summarize_jobs` - AI 요약 작업 큐 (상태: pending/processing/completed/failed)
+- `summarize_jobs` - AI 요약 작업 큐 (상태: pending/processing/completed/failed). Realtime 활성화됨.
+- `grouping_jobs` - LLM 그룹핑 작업 큐 (`article_ids` 배열, 상태: pending/processing/completed/failed)
 - `content_filters` - 콘텐츠 필터링 규칙 (블랙리스트/화이트리스트 키워드)
 - `user_preferences` - 사용자 설정 (선호 카테고리, 대시보드 설정, weather_location, email_digest_enabled)
 - `user_bookmarks` - 사용자 북마크 (뉴스 그룹 ID, 최대 100개 제한)
@@ -249,7 +238,7 @@ UPDATE auth.users SET raw_app_meta_data = raw_app_meta_data || '{"role": "admin"
 
 ## 환경 변수
 
-`.env.local`에 설정 (gitignore됨). `.env.example` 참고:
+`.env.local`에 설정 (gitignore됨). `.env.example` 참고. Ollama 워커는 `scripts/.env`에 **별도** 설정 (`scripts/.env.example` 참고):
 
 ```env
 # Supabase (필수)
