@@ -62,9 +62,12 @@ export function FactSummaryCard({
             </p>
           </div>
         ) : (
-          <div className="text-muted-foreground flex items-center gap-2">
-            <div className="bg-muted h-32 w-full animate-pulse rounded" />
-            <p className="sr-only">내용을 처리하고 있습니다...</p>
+          <div className="text-muted-foreground space-y-2">
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <p className="text-sm">AI가 요약을 준비하고 있습니다.</p>
+            </div>
+            <p className="text-sm">아래 관련 기사 원문을 먼저 확인해보세요.</p>
           </div>
         )}
       </Card>

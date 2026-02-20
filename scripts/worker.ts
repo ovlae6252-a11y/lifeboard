@@ -7,6 +7,8 @@ import type { ArticleForSummary } from "./summarizer.js";
 // 환경변수 검증
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const REVALIDATE_URL = process.env.REVALIDATE_URL;
+const CRON_SECRET = process.env.CRON_SECRET;
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   console.error(
@@ -169,6 +171,30 @@ async function processJob(job: SummarizeJob): Promise<void> {
   }
 }
 
+// Next.js 캐시 무효화 알림 (요약 완료 후 호출, 실패해도 주 작업 중단 없음)
+async function notifyRevalidate(): Promise<void> {
+  if (!REVALIDATE_URL || !CRON_SECRET) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`${REVALIDATE_URL}/api/news/revalidate`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${CRON_SECRET}` },
+    });
+    if (response.ok) {
+      log("[캐시] 무효화 완료");
+    } else {
+      console.error(`[캐시] 무효화 실패 (HTTP ${response.status})`);
+    }
+  } catch (error) {
+    console.error(
+      "[캐시] 무효화 요청 오류:",
+      error instanceof Error ? error.message : String(error),
+    );
+  }
+}
+
 // pending 요약 작업 폴링
 async function pollPendingJobs(): Promise<void> {
   if (isSummarizingProcessing) return;
@@ -192,6 +218,8 @@ async function pollPendingJobs(): Promise<void> {
       for (const job of jobs) {
         await processJob(job);
       }
+      // 배치 완료 후 Next.js 캐시 무효화 (1회만 호출)
+      await notifyRevalidate();
     }
   } catch (error) {
     log(
